@@ -1,0 +1,390 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Color palette */
+:root {
+  --primary: #163683;
+  --secondary: #18bba6;
+  --accent: rgba(22, 54, 131, 0.05); /* primary/5 equivalent */
+  
+  /* Text colors */
+  --heading-color: #163683;
+  --text-color: #222222;
+  --muted-text: #6b7280;
+
+  /* Border and surface */
+  --border-color: #e5e7eb;
+  --surface: #f9fafb;
+
+  /* Font families */
+  --font-heading: 'Aspira Nar', 'Inter', 'Segoe UI', Arial, sans-serif;
+  --font-sans: var(--font-geist-sans, 'Inter', 'Segoe UI', Arial, sans-serif);
+  --font-mono: var(--font-geist-mono, 'Fira Mono', 'Menlo', monospace);
+  --radius: 0.625rem;
+  --background: #fff;
+  --foreground: #1a223a; /* dark blueish foreground to match primary */
+  --card: #fff;
+  --card-foreground: #1a223a;
+  --popover: #fff;
+  --popover-foreground: #1a223a;
+  --primary-foreground: #fff;
+  --secondary-foreground: #fff;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --accent-foreground: #163683;
+  --destructive: #e11d48;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --ring: #163683;
+  --chart-1: #163683;
+  --chart-2: #18bba6;
+  --chart-3: #ffe066;
+  --chart-4: #fbbf24;
+  --chart-5: #f59e42;
+  --sidebar: #f9fafb;
+  --sidebar-foreground: #1a223a;
+  --sidebar-primary: #163683;
+  --sidebar-primary-foreground: #fff;
+  --sidebar-accent: rgba(22, 54, 131, 0.05); /* primary/5 equivalent */
+  --sidebar-accent-foreground: #163683;
+  --sidebar-border: #e5e7eb;
+  --sidebar-ring: #163683;
+}
+
+@theme inline {
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-heading: var(--heading-color);
+  --color-text: var(--text-color);
+  --color-muted: var(--muted-text);
+  --color-border: var(--border-color);
+  --color-surface: var(--surface);
+  --font-heading: var(--font-heading);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* Dark theme removed - website will always use light theme */
+
+body {
+  color: var(--text-color);
+  font-family: var(--font-sans);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--heading-color);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  margin-bottom: 0.5em;
+}
+
+p {
+  color: var(--text-color);
+  font-family: var(--font-sans);
+  line-height: 1.7;
+  margin-bottom: 1em;
+}
+
+a {
+  color: var(--primary);
+  /* text-decoration: underline; */
+  transition: color 0.2s;
+}
+a:hover {
+  color: var(--secondary);
+}
+
+small, .muted, .text-muted {
+  color: var(--muted-text);
+}
+
+.dark {
+  --background: #1a223a;
+  --foreground: #fff;
+  --card: #23272f;
+  --card-foreground: #fff;
+  --popover: #23272f;
+  --popover-foreground: #fff;
+  --primary: #18bba6;
+  --primary-foreground: #1a223a;
+  --secondary: #163683;
+  --secondary-foreground: #fff;
+  --muted: #23272f;
+  --muted-foreground: #a1a1aa;
+  --accent: rgba(22, 54, 131, 0.05); /* primary/5 equivalent */
+  --accent-foreground: #163683;
+  --destructive: #e11d48;
+  --border: #23272f;
+  --input: #23272f;
+  --ring: #18bba6;
+  --chart-1: #18bba6;
+  --chart-2: #163683;
+  --chart-3: #ffe066;
+  --chart-4: #fbbf24;
+  --chart-5: #f59e42;
+  --sidebar: #23272f;
+  --sidebar-foreground: #fff;
+  --sidebar-primary: #18bba6;
+  --sidebar-primary-foreground: #1a223a;
+  --sidebar-accent: rgba(22, 54, 131, 0.05); /* primary/5 equivalent */
+  --sidebar-accent-foreground: #163683;
+  --sidebar-border: #23272f;
+  --sidebar-ring: #18bba6;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+
+/* Added marquee animation for company logos */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-reverse {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+
+.marquee-container {
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+/* Header Enhancements */
+.header-nav-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.header-nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.header-nav-item:hover::before {
+  left: 100%;
+}
+
+/* Custom Dropdown Enhancements */
+.nav-dropdown {
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(22, 54, 131, 0.1);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideDown 0.3s ease-out;
+  transform-origin: top;
+}
+
+.nav-dropdown-item {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-dropdown-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 3px;
+  background: linear-gradient(to bottom, var(--primary), var(--secondary));
+  transform: scaleY(0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-dropdown-item:hover::before {
+  transform: scaleY(1);
+}
+
+.nav-dropdown-item:hover {
+  background: linear-gradient(135deg, rgba(22, 54, 131, 0.05), rgba(24, 187, 166, 0.05));
+  transform: translateX(4px);
+}
+
+/* Login Button Enhancement */
+.login-btn {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  position: relative;
+  overflow: hidden;
+}
+
+.login-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s;
+}
+
+.login-btn:hover::before {
+  left: 100%;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(22, 54, 131, 0.3);
+}
+
+/* Mobile Menu Enhancements */
+.mobile-nav-section {
+  border-left: 3px solid transparent;
+  transition: border-color 0.3s ease;
+}
+
+.mobile-nav-section:hover {
+  border-left-color: var(--primary);
+}
+
+.mobile-nav-link {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.mobile-nav-link::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  background: var(--primary);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-nav-link:hover::before {
+  opacity: 1;
+}
+
+/* Smooth animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nav-dropdown {
+  animation: slideDown 0.3s ease-out;
+}
+
+/* Navigation Menu Viewport Fix */
+[data-radix-navigation-menu-viewport] {
+  position: relative;
+}
+
+/* Custom Navigation Button Styles */
+.custom-nav-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-nav-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(22, 54, 131, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.custom-nav-button:hover::before {
+  left: 100%;
+}
+
+/* Custom dropdown positioning */
+.custom-dropdown-container {
+  position: relative;
+}
+
+.custom-dropdown-container:hover .nav-dropdown,
+.custom-dropdown-container[data-active="true"] .nav-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.nav-dropdown {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Ensure dropdown stays visible when hovering over items */
+.nav-dropdown:hover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
