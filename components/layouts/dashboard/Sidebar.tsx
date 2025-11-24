@@ -52,8 +52,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       name: 'Courses',
       icon: GraduationCap,
       subItems: [
-        { name: 'Campus Course', href: '/dashboard/campus-courses', icon: Building },
-        { name: 'Skills Based', href: '/dashboard/skills-based-courses', icon: Award },
+        { name: 'Campus Course', href: '/dashboard/courses/campus-course', icon: Building },
+        { name: 'Skills Based', href: '/dashboard/courses/skills-based', icon: Award },
       ]
     },
     { name: 'Blog Categories', href: '/dashboard/blog-categories', icon: BookOpen },
