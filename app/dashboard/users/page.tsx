@@ -51,7 +51,7 @@ import {
 } from '@/lib/redux/features/userSlice'
 import axios from 'axios' // Need axios for the PUT request to Wasabi
 
-const userRoles = ["All", "admin", "student", "company", "institution"]
+const userRoles = ["All", "admin", "student", "company"]
 const userStatuses = ["All", "active", "inactive", "suspended"]
 
 // Type for UI display (with id instead of _id)
@@ -158,7 +158,6 @@ const UsersPage = () => {
       case 'admin': return <Crown className="w-4 h-4" />
       case 'student': return <GraduationCap className="w-4 h-4" />
       case 'company': return <Briefcase className="w-4 h-4" />
-      case 'institution': return <Building className="w-4 h-4" />
       default: return <UserIcon className="w-4 h-4" />
     }
   }
@@ -168,7 +167,6 @@ const UsersPage = () => {
       case 'admin': return 'outline'
       case 'student': return 'default'
       case 'company': return 'secondary'
-      case 'institution': return 'outline'
       default: return 'secondary'
     }
   }
@@ -270,7 +268,7 @@ const UsersPage = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Users</h1>
-            <p className="text-muted-foreground">Manage student, company, institution, and admin accounts</p>
+            <p className="text-muted-foreground">Manage student, company, and admin accounts</p>
           </div>
           <Button onClick={() => {
             setSelectedUser(null)
@@ -335,18 +333,7 @@ const UsersPage = () => {
                 <Briefcase className="w-8 h-8 text-purple-500" />
               </div>
             </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Institutions</p>
-                  <p className="text-2xl font-bold text-foreground">{users.filter(u => u.role === 'institution').length}</p>
-                </div>
-                <Building className="w-8 h-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
+          </Card> 
         </div>
 
         {/* Filters and Search */}
@@ -492,12 +479,6 @@ const UsersPage = () => {
                           <Star className="w-3 h-3 text-amber-500 fill-current" />
                           <span className="text-sm font-medium">{user.rating}</span>
                         </div>
-                      </div>
-                    )}
-                    {user.role === 'institution' && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Students:</span>
-                        <span className="text-sm font-medium">{(user.students || 0).toLocaleString()}</span>
                       </div>
                     )}
                   </div>
@@ -826,29 +807,6 @@ const UsersPage = () => {
                   </Card>
                 )}
 
-                {selectedUser.role === 'institution' && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Institution Statistics</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="text-center">
-                          <p className="text-2xl font-bold text-foreground">{selectedUser.totalCourses}</p>
-                          <p className="text-sm text-muted-foreground">Partner Courses</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-2xl font-bold text-foreground">{selectedUser.students}</p>
-                          <p className="text-sm text-muted-foreground">Total Students</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-2xl font-bold text-foreground">{selectedUser.rating}</p>
-                          <p className="text-sm text-muted-foreground">Institution Rating</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
               </div>
             )}
             <DialogFooter>
@@ -1111,12 +1069,14 @@ const UserForm = ({
           />
         </div>
         <div>
-          <Label htmlFor="formPassword">Password</Label>
+          <Label htmlFor="formPassword">Password {!user._id && <span className="text-destructive">*</span>}</Label>
           <Input
             id="formPassword"
+            type="password"
             value={user.password || ''}
             onChange={(e) => onUserChange({ ...user, password: e.target.value })}
-            required
+            required={!user._id}
+            placeholder={user._id ? "Leave blank to keep current password" : "Enter password"}
           />
         </div>
         <div>
@@ -1133,7 +1093,6 @@ const UserForm = ({
               <SelectItem value="admin">Admin</SelectItem>
               <SelectItem value="student">Student</SelectItem>
               <SelectItem value="company">Company</SelectItem>
-              <SelectItem value="institution">Institution</SelectItem>
             </SelectContent>
           </Select>
         </div>

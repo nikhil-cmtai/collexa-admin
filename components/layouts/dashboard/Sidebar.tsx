@@ -20,6 +20,7 @@ import {
   UserCheck,
   Award,
   Building,
+  Settings,
 } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -68,6 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       ]
     },
     { name: 'Applications', href: '/dashboard/applications', icon: Users },
+    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ]
 
   const isActive = (href: string) => {
