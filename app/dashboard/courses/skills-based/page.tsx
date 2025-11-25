@@ -1,12 +1,12 @@
 'use client'
 
 import React, { useState, useMemo, useEffect } from 'react'
-import { 
-  Search, 
-  Grid3X3, 
-  List, 
-  Edit, 
-  Trash2, 
+import {
+  Search,
+  Grid3X3,
+  List,
+  Edit,
+  Trash2,
   Plus,
   Loader2,
   ChevronLeft,
@@ -145,14 +145,14 @@ const SkillsBasedPage = () => {
   const filteredCourses = useMemo(() => {
     return courses.filter(course => {
       const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           course.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           course.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
+        course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
       const matchesCategory = selectedCategory === 'All' || course.category === selectedCategory
       const matchesLevel = selectedLevel === 'All' || course.level === selectedLevel
       const matchesStatus = selectedStatus === 'All' || course.status === selectedStatus
       const matchesPlatform = selectedPlatform === 'All' || course.platform === selectedPlatform
-      
+
       return matchesSearch && matchesCategory && matchesLevel && matchesStatus && matchesPlatform
     })
   }, [courses, searchTerm, selectedCategory, selectedLevel, selectedStatus, selectedPlatform])
@@ -197,7 +197,7 @@ const SkillsBasedPage = () => {
 
   const handleDeleteCourse = async () => {
     if (!selectedCourse || !selectedCourse._id) return
-    
+
     setIsActionLoading(true)
     try {
       await dispatch(deleteSkillBasedCourse(selectedCourse._id)).unwrap()
@@ -788,7 +788,7 @@ const SkillsBasedPage = () => {
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {selectedCourse.skills.map((skill, index) => (
-                        <div key={index} className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                        <div key={index} className="flex items-center gap-2 p-2 bg-gray-100 rounded-lg">
                           <Code className="w-4 h-4 text-primary" />
                           <span className="text-sm">{skill}</span>
                         </div>
@@ -805,7 +805,7 @@ const SkillsBasedPage = () => {
                   <CardContent>
                     <div className="space-y-2">
                       {selectedCourse.projects.map((project, index) => (
-                        <div key={index} className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                        <div key={index} className="flex items-center gap-2 p-2 bg-gray-100 rounded-lg">
                           <BookOpen className="w-4 h-4 text-primary" />
                           <span className="text-sm">{project}</span>
                         </div>
@@ -820,7 +820,7 @@ const SkillsBasedPage = () => {
                     <CardTitle>Instructor</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                    <div className="flex items-center gap-2 p-2 bg-gray-100 rounded-lg">
                       <Users className="w-4 h-4 text-primary" />
                       <span className="text-sm font-medium">{selectedCourse.instructor}</span>
                     </div>
@@ -898,9 +898,9 @@ const SkillsBasedPage = () => {
               <Button variant="outline" onClick={() => setShowDeleteModal(false)} disabled={isActionLoading}>
                 Cancel
               </Button>
-              <Button 
-                variant="destructive" 
-                onClick={handleDeleteCourse} 
+              <Button
+                variant="destructive"
+                onClick={handleDeleteCourse}
                 disabled={isActionLoading}
               >
                 {isActionLoading ? (
@@ -1003,7 +1003,7 @@ const SkillsCourseForm = ({ course, onSubmit, onCancel, isLoading }: {
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
           />
         </div>
@@ -1012,7 +1012,7 @@ const SkillsCourseForm = ({ course, onSubmit, onCancel, isLoading }: {
           <Input
             id="code"
             value={formData.code}
-            onChange={(e) => setFormData({...formData, code: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
             required
           />
         </div>
@@ -1021,7 +1021,7 @@ const SkillsCourseForm = ({ course, onSubmit, onCancel, isLoading }: {
           <Input
             id="duration"
             value={formData.duration}
-            onChange={(e) => setFormData({...formData, duration: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
             placeholder="e.g., 6 Months"
             required
           />
@@ -1032,13 +1032,13 @@ const SkillsCourseForm = ({ course, onSubmit, onCancel, isLoading }: {
             id="fees"
             type="number"
             value={formData.fees}
-            onChange={(e) => setFormData({...formData, fees: parseInt(e.target.value)})}
+            onChange={(e) => setFormData({ ...formData, fees: parseInt(e.target.value) })}
             required
           />
         </div>
         <div>
           <Label htmlFor="category">Category</Label>
-          <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+          <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -1056,7 +1056,7 @@ const SkillsCourseForm = ({ course, onSubmit, onCancel, isLoading }: {
         </div>
         <div>
           <Label htmlFor="level">Level</Label>
-          <Select value={formData.level} onValueChange={(value) => setFormData({...formData, level: value})}>
+          <Select value={formData.level} onValueChange={(value) => setFormData({ ...formData, level: value })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -1072,7 +1072,7 @@ const SkillsCourseForm = ({ course, onSubmit, onCancel, isLoading }: {
         </div>
         <div>
           <Label htmlFor="status">Status</Label>
-          <Select value={formData.status} onValueChange={(value) => setFormData({...formData, status: value as "active" | "inactive"})}>
+          <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as "active" | "inactive" })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -1089,7 +1089,7 @@ const SkillsCourseForm = ({ course, onSubmit, onCancel, isLoading }: {
             id="seats"
             type="number"
             value={formData.seats}
-            onChange={(e) => setFormData({...formData, seats: parseInt(e.target.value)})}
+            onChange={(e) => setFormData({ ...formData, seats: parseInt(e.target.value) })}
             required
           />
         </div>
@@ -1098,13 +1098,13 @@ const SkillsCourseForm = ({ course, onSubmit, onCancel, isLoading }: {
           <Input
             id="instructor"
             value={formData.instructor}
-            onChange={(e) => setFormData({...formData, instructor: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, instructor: e.target.value })}
             required
           />
         </div>
         <div>
           <Label htmlFor="platform">Platform</Label>
-          <Select value={formData.platform} onValueChange={(value) => setFormData({...formData, platform: value})}>
+          <Select value={formData.platform} onValueChange={(value) => setFormData({ ...formData, platform: value })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -1126,7 +1126,7 @@ const SkillsCourseForm = ({ course, onSubmit, onCancel, isLoading }: {
         <Textarea
           id="description"
           value={formData.description}
-          onChange={(e) => setFormData({...formData, description: e.target.value})}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           rows={3}
           required
         />
@@ -1137,7 +1137,7 @@ const SkillsCourseForm = ({ course, onSubmit, onCancel, isLoading }: {
         <Textarea
           id="prerequisites"
           value={formData.prerequisites}
-          onChange={(e) => setFormData({...formData, prerequisites: e.target.value})}
+          onChange={(e) => setFormData({ ...formData, prerequisites: e.target.value })}
           rows={2}
           required
         />
@@ -1159,7 +1159,7 @@ const SkillsCourseForm = ({ course, onSubmit, onCancel, isLoading }: {
           </div>
           <div className="space-y-1">
             {formData.skills.map((skill, index) => (
-              <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-lg">
+              <div key={index} className="flex items-center justify-between p-2 bg-gray-100 rounded-lg">
                 <span className="text-sm">{skill}</span>
                 <Button
                   type="button"
@@ -1192,7 +1192,7 @@ const SkillsCourseForm = ({ course, onSubmit, onCancel, isLoading }: {
           </div>
           <div className="space-y-1">
             {formData.projects.map((project, index) => (
-              <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-lg">
+              <div key={index} className="flex items-center justify-between p-2 bg-gray-100 rounded-lg">
                 <span className="text-sm">{project}</span>
                 <Button
                   type="button"

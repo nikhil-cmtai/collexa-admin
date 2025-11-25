@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react'
 import dynamic from 'next/dynamic'
-import { 
-  Loader2, 
-  Sparkles, 
-  Edit3, 
+import {
+  Loader2,
+  Sparkles,
+  Edit3,
   ArrowLeft,
   FileText,
   Save,
@@ -224,7 +224,7 @@ const AddBlogs = () => {
   }
 
   const updateImage = (imageId: string, field: keyof BlogImage, value: string) => {
-    const updatedImages = formData.images.map(img => 
+    const updatedImages = formData.images.map(img =>
       img.id === imageId ? { ...img, [field]: value } : img
     )
     handleInputChange('images', updatedImages)
@@ -254,9 +254,9 @@ const AddBlogs = () => {
         ogDescription: formData.ogDescription,
         ogImage: formData.ogImage,
       }
-      
+
       await dispatch(createBlog(blogPayload)).unwrap()
-      
+
       // Redirect back to blogs page
       router.push('/dashboard/blogs')
     } catch (error) {
@@ -307,8 +307,8 @@ const AddBlogs = () => {
                 className="mt-2"
               />
             </div>
-            
-            <Button 
+
+            <Button
               onClick={generateBlogWithAI}
               disabled={isGenerating || !blogTopic.trim()}
               className="w-full"
@@ -411,7 +411,7 @@ const AddBlogs = () => {
               {/* Basic Information */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold border-b pb-2">Basic Information</h3>
-                
+
                 <div>
                   <Label htmlFor="title">Blog Title</Label>
                   <Input
@@ -472,7 +472,7 @@ const AddBlogs = () => {
               {/* Content & Media */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold border-b pb-2">Content & Media</h3>
-                
+
                 <div>
                   <Label htmlFor="featuredImage">Featured Image URL</Label>
                   <Input

@@ -1,12 +1,12 @@
 'use client'
 
 import React, { useState, useMemo, useEffect } from 'react'
-import { 
-  Search, 
-  Grid3X3, 
-  List, 
-  Edit, 
-  Trash2, 
+import {
+  Search,
+  Grid3X3,
+  List,
+  Edit,
+  Trash2,
   Plus,
   Loader2,
   ChevronLeft,
@@ -129,13 +129,13 @@ const CampusCoursePage = () => {
   const filteredCourses = useMemo(() => {
     return courses.filter(course => {
       const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           course.specialization.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           course.university.toLowerCase().includes(searchTerm.toLowerCase())
+        course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.specialization.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.university.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesType = selectedType === 'All' || course.type === selectedType
       const matchesStatus = selectedStatus === 'All' || course.status === selectedStatus
       const matchesUniversity = selectedUniversity === 'All' || course.university === selectedUniversity
-      
+
       return matchesSearch && matchesType && matchesStatus && matchesUniversity
     })
   }, [courses, searchTerm, selectedType, selectedStatus, selectedUniversity])
@@ -180,7 +180,7 @@ const CampusCoursePage = () => {
 
   const handleDeleteCourse = async () => {
     if (!selectedCourse || !selectedCourse._id) return
-    
+
     setIsActionLoading(true)
     try {
       await dispatch(deleteCampusCourse(selectedCourse._id)).unwrap()
@@ -738,7 +738,7 @@ const CampusCoursePage = () => {
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {selectedCourse.curriculum.map((subject, index) => (
-                        <div key={index} className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                        <div key={index} className="flex items-center gap-2 p-2 bg-gray-100 rounded-lg">
                           <BookOpen className="w-4 h-4 text-primary" />
                           <span className="text-sm">{subject}</span>
                         </div>
@@ -755,7 +755,7 @@ const CampusCoursePage = () => {
                   <CardContent>
                     <div className="space-y-2">
                       {selectedCourse.faculty.map((faculty, index) => (
-                        <div key={index} className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                        <div key={index} className="flex items-center gap-2 p-2 bg-gray-100 rounded-lg">
                           <Users className="w-4 h-4 text-primary" />
                           <span className="text-sm">{faculty}</span>
                         </div>
@@ -835,9 +835,9 @@ const CampusCoursePage = () => {
               <Button variant="outline" onClick={() => setShowDeleteModal(false)} disabled={isActionLoading}>
                 Cancel
               </Button>
-              <Button 
-                variant="destructive" 
-                onClick={handleDeleteCourse} 
+              <Button
+                variant="destructive"
+                onClick={handleDeleteCourse}
                 disabled={isActionLoading}
               >
                 {isActionLoading ? (
@@ -940,7 +940,7 @@ const CourseForm = ({ course, onSubmit, onCancel, isLoading }: {
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
           />
         </div>
@@ -949,7 +949,7 @@ const CourseForm = ({ course, onSubmit, onCancel, isLoading }: {
           <Input
             id="code"
             value={formData.code}
-            onChange={(e) => setFormData({...formData, code: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
             required
           />
         </div>
@@ -958,7 +958,7 @@ const CourseForm = ({ course, onSubmit, onCancel, isLoading }: {
           <Input
             id="duration"
             value={formData.duration}
-            onChange={(e) => setFormData({...formData, duration: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
             placeholder="e.g., 3 Years"
             required
           />
@@ -969,7 +969,7 @@ const CourseForm = ({ course, onSubmit, onCancel, isLoading }: {
             id="fees"
             type="number"
             value={formData.fees}
-            onChange={(e) => setFormData({...formData, fees: parseInt(e.target.value)})}
+            onChange={(e) => setFormData({ ...formData, fees: parseInt(e.target.value) })}
             required
           />
         </div>
@@ -978,7 +978,7 @@ const CourseForm = ({ course, onSubmit, onCancel, isLoading }: {
           <Input
             id="university"
             value={formData.university}
-            onChange={(e) => setFormData({...formData, university: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, university: e.target.value })}
             required
           />
         </div>
@@ -987,13 +987,13 @@ const CourseForm = ({ course, onSubmit, onCancel, isLoading }: {
           <Input
             id="location"
             value={formData.location}
-            onChange={(e) => setFormData({...formData, location: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
             required
           />
         </div>
         <div>
           <Label htmlFor="type">Course Type</Label>
-          <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})}>
+          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -1010,13 +1010,13 @@ const CourseForm = ({ course, onSubmit, onCancel, isLoading }: {
           <Input
             id="specialization"
             value={formData.specialization}
-            onChange={(e) => setFormData({...formData, specialization: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
             required
           />
         </div>
         <div>
           <Label htmlFor="status">Status</Label>
-          <Select value={formData.status} onValueChange={(value) => setFormData({...formData, status: value as "active" | "inactive"})}>
+          <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as "active" | "inactive" })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -1033,7 +1033,7 @@ const CourseForm = ({ course, onSubmit, onCancel, isLoading }: {
             id="seats"
             type="number"
             value={formData.seats}
-            onChange={(e) => setFormData({...formData, seats: parseInt(e.target.value)})}
+            onChange={(e) => setFormData({ ...formData, seats: parseInt(e.target.value) })}
             required
           />
         </div>
@@ -1044,7 +1044,7 @@ const CourseForm = ({ course, onSubmit, onCancel, isLoading }: {
         <Textarea
           id="description"
           value={formData.description}
-          onChange={(e) => setFormData({...formData, description: e.target.value})}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           rows={3}
           required
         />
@@ -1055,7 +1055,7 @@ const CourseForm = ({ course, onSubmit, onCancel, isLoading }: {
         <Textarea
           id="eligibility"
           value={formData.eligibility}
-          onChange={(e) => setFormData({...formData, eligibility: e.target.value})}
+          onChange={(e) => setFormData({ ...formData, eligibility: e.target.value })}
           rows={2}
           required
         />
@@ -1077,7 +1077,7 @@ const CourseForm = ({ course, onSubmit, onCancel, isLoading }: {
           </div>
           <div className="space-y-1">
             {formData.curriculum.map((item, index) => (
-              <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-lg">
+              <div key={index} className="flex items-center justify-between p-2 bg-gray-100 rounded-lg">
                 <span className="text-sm">{item}</span>
                 <Button
                   type="button"
@@ -1110,7 +1110,7 @@ const CourseForm = ({ course, onSubmit, onCancel, isLoading }: {
           </div>
           <div className="space-y-1">
             {formData.faculty.map((item, index) => (
-              <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-lg">
+              <div key={index} className="flex items-center justify-between p-2 bg-gray-100 rounded-lg">
                 <span className="text-sm">{item}</span>
                 <Button
                   type="button"

@@ -1,12 +1,12 @@
 'use client'
 
 import React, { useState, useMemo, useEffect } from 'react'
-import { 
-  Search, 
-  Grid3X3, 
-  List, 
-  Edit, 
-  Trash2, 
+import {
+  Search,
+  Grid3X3,
+  List,
+  Edit,
+  Trash2,
   UserPlus,
   User as UserIcon,
   Star,
@@ -21,6 +21,7 @@ import {
   Building,
   GraduationCap,
   Briefcase,
+  Upload, // Added Upload Icon
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -45,8 +46,10 @@ import {
   setUserRoleFilter,
   setUserStatusFilter,
   clearSelectedUser,
+  getAvatarUploadUrl, // Import the new thunk
   type User,
 } from '@/lib/redux/features/userSlice'
+import axios from 'axios' // Need axios for the PUT request to Wasabi
 
 const userRoles = ["All", "admin", "student", "company", "institution"]
 const userStatuses = ["All", "active", "inactive", "suspended"]
@@ -129,12 +132,12 @@ const UsersPage = () => {
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
       const matchesSearch = user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           (user.phone && user.phone.includes(searchTerm))
+        user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (user.phone && user.phone.includes(searchTerm))
       const matchesRole = selectedRole === 'All' || user.role === selectedRole
       const matchesStatus = selectedStatus === 'All' || user.status === selectedStatus
-      
+
       return matchesSearch && matchesRole && matchesStatus
     })
   }, [users, searchTerm, selectedRole, selectedStatus])
@@ -218,7 +221,7 @@ const UsersPage = () => {
 
   const handleDeleteUser = async () => {
     if (!selectedUser || !selectedUser._id || selectedUser.role === 'admin') return
-    
+
     setIsActionLoading(true)
     try {
       await dispatch(deleteUser(selectedUser._id)).unwrap()
@@ -265,10 +268,10 @@ const UsersPage = () => {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Users</h1>
-          <p className="text-muted-foreground">Manage student, company, institution, and admin accounts</p>
-        </div>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Users</h1>
+            <p className="text-muted-foreground">Manage student, company, institution, and admin accounts</p>
+          </div>
           <Button onClick={() => {
             setSelectedUser(null)
             setShowAddModal(true)
@@ -635,6 +638,7 @@ const UsersPage = () => {
           </Card>
         )}
 
+        {/* ... [Pagination code remains same] ... */}
         {/* Pagination */}
         {totalPages > 1 && (
           <Card>
@@ -692,6 +696,12 @@ const UsersPage = () => {
             </DialogHeader>
             {selectedUser && (
               <div className="space-y-6">
+                <div className="flex justify-center mb-6">
+                  <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
+                    <AvatarImage src={selectedUser.avatar} alt={`${selectedUser.firstName} ${selectedUser.lastName}`} />
+                    <AvatarFallback className="text-4xl">{selectedUser.firstName[0]}{selectedUser.lastName[0]}</AvatarFallback>
+                  </Avatar>
+                </div>
                 {/* User Summary */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Card>
@@ -764,7 +774,7 @@ const UsersPage = () => {
                     </CardContent>
                   </Card>
                 </div>
-
+                {/* ... [Rest of View Modal remains same] ... */}
                 {/* Bio */}
                 <Card>
                   <CardHeader>
@@ -901,7 +911,7 @@ const UsersPage = () => {
               } as DashboardUser}
               onUserChange={setSelectedUser}
               onSubmit={(userData) => {
-                const {...createData } = userData
+                const { ...createData } = userData
                 handleAddUser(createData)
               }}
               onCancel={() => {
@@ -931,9 +941,9 @@ const UsersPage = () => {
               <Button variant="outline" onClick={() => setShowDeleteModal(false)} disabled={isActionLoading}>
                 Cancel
               </Button>
-              <Button 
-                variant="destructive" 
-                onClick={handleDeleteUser} 
+              <Button
+                variant="destructive"
+                onClick={handleDeleteUser}
                 disabled={isActionLoading || selectedUser?.role === 'admin'}
               >
                 {isActionLoading ? (
@@ -953,7 +963,7 @@ const UsersPage = () => {
   )
 }
 
-// User Form Component
+// User Form Component (UPDATED FOR IMAGE UPLOAD)
 const UserForm = ({
   user,
   onUserChange,
@@ -967,20 +977,108 @@ const UserForm = ({
   onCancel: () => void
   isLoading: boolean
 }) => {
-  const handleSubmit = (e: React.FormEvent) => {
+  const dispatch = useAppDispatch()
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string>(user.avatar || '')
+  const [isUploading, setIsUploading] = useState(false)
+
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+      // Create a local preview URL
+      const objectUrl = URL.createObjectURL(file)
+      setPreviewUrl(objectUrl)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(user)
+
+    let finalAvatarUrl = user.avatar;
+
+    // 1. If a file is selected, upload it to Wasabi first
+    if (selectedFile) {
+      setIsUploading(true)
+      try {
+        // A. Get Signed URL from Redux Thunk
+        const { uploadUrl, publicUrl } = await dispatch(getAvatarUploadUrl({
+          fileName: selectedFile.name,
+          fileType: selectedFile.type
+        })).unwrap();
+
+        // B. Upload file binary directly to Wasabi using PUT
+        await axios.put(uploadUrl, selectedFile, {
+          headers: {
+            'Content-Type': selectedFile.type
+          }
+        });
+
+        // C. Update the URL to be sent to the backend
+        finalAvatarUrl = publicUrl;
+
+      } catch (error) {
+        console.error("Image upload failed:", error);
+        // You might want to show a toast error here
+        setIsUploading(false);
+        return; // Stop form submission if upload fails
+      }
+      setIsUploading(false)
+    }
+
+    // 2. Submit the user data with the correct avatar URL
+    onSubmit({
+      ...user,
+      avatar: finalAvatarUrl
+    })
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Avatar Upload Section */}
+      <div className="flex flex-col items-center gap-4 mb-4">
+        <Avatar className="w-24 h-24 border-2 border-border">
+          <AvatarImage src={previewUrl} />
+          <AvatarFallback className="text-xl">{user.firstName?.[0]}{user.lastName?.[0]}</AvatarFallback>
+        </Avatar>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="avatar-upload" className="cursor-pointer">
+            <div className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors">
+              <Upload className="w-4 h-4" />
+              <span>{selectedFile ? 'Change Photo' : 'Upload Photo'}</span>
+            </div>
+          </Label>
+          <Input
+            id="avatar-upload"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          {selectedFile && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSelectedFile(null);
+                setPreviewUrl(user.avatar || '');
+              }}
+            >
+              Remove
+            </Button>
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <Label htmlFor="formFirstName">First Name</Label>
           <Input
             id="formFirstName"
             value={user.firstName}
-            onChange={(e) => onUserChange({...user, firstName: e.target.value})}
+            onChange={(e) => onUserChange({ ...user, firstName: e.target.value })}
             required
           />
         </div>
@@ -989,7 +1087,7 @@ const UserForm = ({
           <Input
             id="formLastName"
             value={user.lastName}
-            onChange={(e) => onUserChange({...user, lastName: e.target.value})}
+            onChange={(e) => onUserChange({ ...user, lastName: e.target.value })}
             required
           />
         </div>
@@ -999,7 +1097,7 @@ const UserForm = ({
             id="formEmail"
             type="email"
             value={user.email}
-            onChange={(e) => onUserChange({...user, email: e.target.value})}
+            onChange={(e) => onUserChange({ ...user, email: e.target.value })}
             required
           />
         </div>
@@ -1008,14 +1106,25 @@ const UserForm = ({
           <Input
             id="formPhone"
             value={user.phone || ''}
-            onChange={(e) => onUserChange({...user, phone: e.target.value})}
+            onChange={(e) => onUserChange({ ...user, phone: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="formPassword">Password</Label>
+          <Input
+            id="formPassword"
+            value={user.password || ''}
+            onChange={(e) => onUserChange({ ...user, password: e.target.value })}
+            required
           />
         </div>
         <div>
           <Label htmlFor="formRole">Role</Label>
-          <Select 
-            value={user.role} 
-            onValueChange={(value) => onUserChange({...user, role: value as User['role']})}
+          <Select
+            value={user.role}
+            onValueChange={(value) => onUserChange({ ...user, role: value as User['role'] })}
+            required
           >
             <SelectTrigger>
               <SelectValue placeholder="Select role" />
@@ -1030,9 +1139,9 @@ const UserForm = ({
         </div>
         <div>
           <Label htmlFor="formStatus">Status</Label>
-          <Select 
-            value={user.status} 
-            onValueChange={(value) => onUserChange({...user, status: value as User['status']})}
+          <Select
+            value={user.status}
+            onValueChange={(value) => onUserChange({ ...user, status: value as User['status'] })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select status" />
@@ -1049,15 +1158,16 @@ const UserForm = ({
           <Input
             id="formDateOfBirth"
             type="date"
-            value={user.dateOfBirth || ''}
-            onChange={(e) => onUserChange({...user, dateOfBirth: e.target.value})}
+            // Ensure date string format YYYY-MM-DD
+            value={user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : ''}
+            onChange={(e) => onUserChange({ ...user, dateOfBirth: e.target.value })}
           />
         </div>
         <div>
           <Label htmlFor="formVerified">Verified</Label>
-          <Select 
-            value={user.verified ? 'true' : 'false'} 
-            onValueChange={(value) => onUserChange({...user, verified: value === 'true'})}
+          <Select
+            value={user.verified ? 'true' : 'false'}
+            onValueChange={(value) => onUserChange({ ...user, verified: value === 'true' })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select verification" />
@@ -1068,23 +1178,14 @@ const UserForm = ({
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <Label htmlFor="formAvatar">Avatar URL</Label>
-          <Input
-            id="formAvatar"
-            type="url"
-            value={user.avatar || ''}
-            onChange={(e) => onUserChange({...user, avatar: e.target.value})}
-            placeholder="https://example.com/avatar.jpg"
-          />
-        </div>
+        {/* Removed text input for Avatar since we now have the upload section */}
       </div>
       <div>
         <Label htmlFor="formAddress">Address</Label>
         <Textarea
           id="formAddress"
           value={user.address || ''}
-          onChange={(e) => onUserChange({...user, address: e.target.value})}
+          onChange={(e) => onUserChange({ ...user, address: e.target.value })}
           rows={3}
           placeholder="Enter address"
         />
@@ -1094,20 +1195,20 @@ const UserForm = ({
         <Textarea
           id="formBio"
           value={user.bio || ''}
-          onChange={(e) => onUserChange({...user, bio: e.target.value})}
+          onChange={(e) => onUserChange({ ...user, bio: e.target.value })}
           rows={3}
           placeholder="Enter bio"
         />
       </div>
       <DialogFooter>
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading || isUploading}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? (
+        <Button type="submit" disabled={isLoading || isUploading}>
+          {(isLoading || isUploading) ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              {user._id ? 'Updating...' : 'Creating...'}
+              {isUploading ? 'Uploading Image...' : (user._id ? 'Updating...' : 'Creating...')}
             </>
           ) : (
             user._id ? 'Update User' : 'Create User'

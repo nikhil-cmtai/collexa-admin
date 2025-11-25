@@ -9,6 +9,7 @@ export type User = {
   lastName: string;
   email: string;
   phone: string;
+  password: string;
   role: "admin" | "student" | "company" | "institution";
   status: "active" | "inactive" | "suspended";
   avatar?: string;
@@ -72,6 +73,7 @@ const normalizeUser = (raw: Record<string, unknown>): User => {
     lastName: (raw.lastName as string) ?? nameParts.slice(1).join(" ") ?? "",
     email: (raw.email as string) ?? "",
     phone: (raw.phone as string) ?? "",
+    password: (raw.password as string) ?? "",
     role: (raw.role as string) ?? "student",
     status: (raw.status as string) ?? "active",
     avatar: (raw.avatar as string) ?? "",
@@ -89,6 +91,24 @@ const normalizeUser = (raw: Record<string, unknown>): User => {
     updatedAt: (raw.updatedAt as string) ?? new Date().toISOString(),
   } as User;
 };
+
+// --- NEW THUNK: Get Wasabi Upload URL ---
+export const getAvatarUploadUrl = createAsyncThunk(
+  "users/getAvatarUploadUrl",
+  async ({ fileName, fileType }: { fileName: string; fileType: string }, { rejectWithValue }) => {
+    try {
+      // POST /admin/users/get-upload-url (Matches your router)
+      const response = await axios.post<ApiResponse<{ uploadUrl: string; publicUrl: string }>>(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/users/get-upload-url`,
+        { fileName, fileType }
+      );
+      return extractData(response.data);
+    } catch (error: unknown) {
+      console.error("Failed to get upload URL:", error);
+      return rejectWithValue("Failed to generate upload URL");
+    }
+  }
+);
 
 // GET /admin/users
 export const fetchUsers = createAsyncThunk(
