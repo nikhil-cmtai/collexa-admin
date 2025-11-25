@@ -99,7 +99,7 @@ export const getAvatarUploadUrl = createAsyncThunk(
     try {
       // POST /admin/users/get-upload-url (Matches your router)
       const response = await axios.post<ApiResponse<{ uploadUrl: string; publicUrl: string }>>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/users/get-upload-url`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/uploads/generate-presigned-url`,
         { fileName, fileType }
       );
       return extractData(response.data);
