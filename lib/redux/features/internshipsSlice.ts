@@ -1,5 +1,6 @@
 "use client";
 
+import apiClient from "@/lib/apiClient";
 import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
@@ -29,6 +30,7 @@ export type Internship = {
   rating: number;
   companySize: string;
   industry: string;
+  postedBy: string;
 };
 
 type InternshipsState = {
@@ -79,8 +81,8 @@ export const fetchInternships = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await axios.get<ApiResponse<{ docs: Internship[] }>>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/internships`,
+      const response = await apiClient.get<ApiResponse<{ docs: Internship[] }>>(
+        `/admin/internships`,
         { params }
       );
       const data = extractData(response.data);
@@ -96,8 +98,8 @@ export const fetchInternshipStats = createAsyncThunk(
   "internships/fetchInternshipStats",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get<ApiResponse<Record<string, unknown>>>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/internships/stats`
+      const response = await apiClient.get<ApiResponse<Record<string, unknown>>>(
+        `/admin/internships/stats`
       );
       return extractData(response.data);
     } catch (error) {
@@ -111,8 +113,8 @@ export const fetchInternshipById = createAsyncThunk(
   "internships/fetchInternshipById",
   async (internshipId: string, { rejectWithValue }) => {
     try {
-      const response = await axios.get<ApiResponse<Internship>>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/internships/${internshipId}`
+      const response = await apiClient.get<ApiResponse<Internship>>(
+        `/admin/internships/${internshipId}`
       );
       return normalizeInternship(extractData(response.data));
     } catch (error) {
@@ -126,8 +128,8 @@ export const createInternship = createAsyncThunk(
   "internships/createInternship",
   async (data: Omit<Internship, "id">, { rejectWithValue }) => {
     try {
-      const response = await axios.post<ApiResponse<Internship>>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/internships`,
+      const response = await apiClient.post<ApiResponse<Internship>>(
+        `/admin/internships`,
         data
       );
       return normalizeInternship(extractData(response.data));
@@ -145,8 +147,8 @@ export const updateInternship = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await axios.patch<ApiResponse<Internship>>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/internships/${internshipId}`,
+      const response = await apiClient.patch<ApiResponse<Internship>>(
+        `/admin/internships/${internshipId}`,
         data
       );
       return normalizeInternship(extractData(response.data));
@@ -161,8 +163,8 @@ export const deleteInternship = createAsyncThunk(
   "internships/deleteInternship",
   async (internshipId: string, { rejectWithValue }) => {
     try {
-      await axios.delete(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/internships/${internshipId}`
+      await apiClient.delete(
+        `/admin/internships/${internshipId}`
       );
       return internshipId;
     } catch (error) {

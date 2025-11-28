@@ -14,6 +14,7 @@ import campusCoursesReducer from "./features/campus-courseSlice";
 import skillBasedCoursesReducer from "./features/skill-based-courseSlice";
 import admissionRequestsReducer from "./features/admission-requestSlice";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+import dashboardReducers from "./features/dashboardSlice";
 
 export const store = configureStore({
   reducer: {
@@ -29,6 +30,7 @@ export const store = configureStore({
     campusCourses: campusCoursesReducer,
     skillBasedCourses: skillBasedCoursesReducer,
     admissionRequests: admissionRequestsReducer,
+    dashboard:dashboardReducers,
   },
 });
 

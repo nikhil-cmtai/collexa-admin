@@ -1,17 +1,20 @@
-import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+// src/lib/redux/features/blogSlice.ts
 
-export type Blog = {
-  _id?: string;
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import axios, { AxiosError } from "axios";
+
+// 1. Defining strict types for our Blog data
+export interface Blog {
+  _id: string;
   title: string;
   slug: string;
   excerpt: string;
   content: string;
   featuredImage: string;
   author: string;
-  category: string;
-  tags: string | string[];
-  status: string;
+  category: string; // This will hold the ObjectId string
+  tags: string[];
+  status: 'published' | 'draft' | 'archived';
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -20,171 +23,154 @@ export type Blog = {
   likes: number;
   metaTitle: string;
   metaDescription: string;
-  metaKeywords: string;
+  metaKeywords: string[];
   canonicalUrl: string;
   ogTitle: string;
   ogDescription: string;
   ogImage: string;
-};
+}
 
-type BlogsState = {
+// Types for API payloads
+export type BlogCreatePayload = Omit<Blog, '_id' | 'createdAt' | 'updatedAt' | 'views' | 'likes'>;
+export type BlogUpdatePayload = Partial<BlogCreatePayload>;
+
+// 2. Defining the shape of our Redux state
+interface BlogsState {
   items: Blog[];
   status: "idle" | "loading" | "succeeded" | "failed";
   error?: string;
-  query: string;
-  category: string;
-  statusFilter: string;
   stats: Record<string, unknown> | null;
   selectedBlog: Blog | null;
-};
+}
 
 const initialState: BlogsState = {
   items: [],
   status: "idle",
   error: undefined,
-  query: "",
-  category: "",
-  statusFilter: "",
   stats: null,
   selectedBlog: null,
 };
 
-type ApiResponse<T> = {
-  statusCode?: number;
-  data?: T;
-  message?: string;
-  success?: boolean;
-};
+// 3. Defining a generic type for our standard API response
+interface ApiResponse<T> {
+  data: T;
+  message: string;
+  success: boolean;
+}
 
-const extractData = <T>(payload: ApiResponse<T> | T): T => {
-  if (payload && typeof payload === "object" && "data" in payload) {
-    return (payload as ApiResponse<T>).data as T;
-  }
-  return payload as T;
-};
+// Helper to extract data from the response wrapper
+const extractData = <T>(response: { data: ApiResponse<T> }): T => response.data.data;
 
-const normalizeBlog = (raw: Record<string, unknown>): Blog => ({
-  ...raw,
-  _id: (raw._id as string) ?? (raw.id as string) ?? "",
-  tags: Array.isArray(raw.tags) ? (raw.tags as string[]) : typeof raw.tags === "string" ? raw.tags.split(",").map((t: string) => t.trim()) : [],
-  views: (raw.views as number) ?? 0,
-  likes: (raw.likes as number) ?? 0,
-  readTime: (raw.readTime as string) ?? "5 min",
-  publishedAt: (raw.publishedAt as string) ?? null,
-  metaTitle: (raw.metaTitle as string) ?? (raw.title as string) ?? "",
-  metaDescription: (raw.metaDescription as string) ?? (raw.excerpt as string) ?? "",
-  metaKeywords: (raw.metaKeywords as string) ?? "",
-  canonicalUrl: (raw.canonicalUrl as string) ?? "",
-  ogTitle: (raw.ogTitle as string) ?? (raw.title as string) ?? "",
-  ogDescription: (raw.ogDescription as string) ?? (raw.excerpt as string) ?? "",
-  ogImage: (raw.ogImage as string) ?? (raw.featuredImage as string) ?? "",
-} as Blog);
-
-// GET /admin/blogs
-export const fetchBlogs = createAsyncThunk(
+// 4. Async Thunks with proper TypeScript typing
+export const fetchBlogs = createAsyncThunk<
+  Blog[], // Return type
+  { q?: string; category?: string; status?: string } | undefined, // Argument type
+  { rejectValue: string } // ThunkAPI config
+>(
   "blogs/fetchBlogs",
-  async (
-    params: { q?: string; category?: string; status?: string } | undefined,
-    { rejectWithValue }
-  ) => {
+  async (params, { rejectWithValue }) => {
     try {
       const response = await axios.get<ApiResponse<{ docs: Blog[] }>>(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/blogs`,
         { params }
       );
-      const data = extractData(response.data);
-      return (data?.docs ?? []).map(normalizeBlog);
-    } catch (error: unknown) {
-      console.error("Failed to fetch blogs:", error);
-      return rejectWithValue("Failed to fetch blogs");
+      return extractData(response) ?.docs ?? [];
+    } catch (error) {
+      return rejectWithValue("Failed to fetch blogs.");
     }
   }
 );
 
-// POST /admin/blogs
-export const createBlog = createAsyncThunk(
+export const createBlog = createAsyncThunk<
+  Blog,
+  BlogCreatePayload,
+  { rejectValue: string }
+>(
   "blogs/createBlog",
-  async (
-    data: Omit<Blog, "_id" | "createdAt" | "updatedAt" | "views" | "likes">,
-    { rejectWithValue }
-  ) => {
+  async (data, { rejectWithValue }) => {
     try {
       const response = await axios.post<ApiResponse<Blog>>(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/blogs`,
         data
       );
-      return normalizeBlog(extractData(response.data));
-    } catch (error: unknown) {
-      console.error("Failed to create blog:", error);
-      return rejectWithValue("Failed to create blog");
+      return extractData(response);
+    } catch (error) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Failed to create blog.");
     }
   }
 );
 
-// GET /admin/blogs/stats
-export const fetchBlogsStats = createAsyncThunk(
+export const fetchBlogsStats = createAsyncThunk<
+  Record<string, unknown>,
+  void,
+  { rejectValue: string }
+>(
   "blogs/fetchBlogsStats",
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get<ApiResponse<Record<string, unknown>>>(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/blogs/stats`
       );
-      return extractData(response.data);
-    } catch (error: unknown) {
-      console.error("Failed to fetch blog stats:", error);
-      return rejectWithValue("Failed to fetch blog stats");
+      return extractData(response);
+    } catch (error) {
+      return rejectWithValue("Failed to fetch blog stats.");
     }
   }
 );
 
-// GET /admin/blogs/:id
-export const fetchBlogById = createAsyncThunk(
+export const fetchBlogById = createAsyncThunk<
+  Blog,
+  string,
+  { rejectValue: string }
+>(
   "blogs/fetchBlogById",
-  async (blogId: string, { rejectWithValue }) => {
+  async (blogId, { rejectWithValue }) => {
     try {
       const response = await axios.get<ApiResponse<Blog>>(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/blogs/${blogId}`
       );
-      return normalizeBlog(extractData(response.data));
-    } catch (error: unknown) {
-      console.error("Failed to fetch blog by id:", error);
-      return rejectWithValue("Failed to fetch blog by id");
+      return extractData(response);
+    } catch (error) {
+      return rejectWithValue("Failed to fetch blog by ID.");
     }
   }
 );
 
-// PATCH /admin/blogs/:id
-export const updateBlog = createAsyncThunk(
+export const updateBlog = createAsyncThunk<
+  Blog,
+  { blogId: string; data: BlogUpdatePayload },
+  { rejectValue: string }
+>(
   "blogs/updateBlog",
-  async (
-    { blogId, data }: { blogId: string; data: Partial<Blog> },
-    { rejectWithValue }
-  ) => {
+  async ({ blogId, data }, { rejectWithValue }) => {
     try {
       const response = await axios.patch<ApiResponse<Blog>>(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/blogs/${blogId}`,
         data
       );
-      return normalizeBlog(extractData(response.data));
-    } catch (error: unknown) {
-      console.error("Failed to update blog:", error);
-      return rejectWithValue("Failed to update blog");
+      return extractData(response);
+    } catch (error) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Failed to update blog.");
     }
   }
 );
 
-// DELETE /admin/blogs/:id
-export const deleteBlog = createAsyncThunk(
+export const deleteBlog = createAsyncThunk<
+  string, // Returns the ID of the deleted blog
+  string, // Takes the blog ID as argument
+  { rejectValue: string }
+>(
   "blogs/deleteBlog",
-  async (blogId: string, { rejectWithValue }) => {
+  async (blogId, { rejectWithValue }) => {
     try {
       await axios.delete(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/blogs/${blogId}`
       );
       return blogId;
-    } catch (error: unknown) {
-      console.error("Failed to delete blog:", error);
-      return rejectWithValue("Failed to delete blog");
+    } catch (error) {
+      return rejectWithValue("Failed to delete blog.");
     }
   }
 );
@@ -193,15 +179,6 @@ const blogSlice = createSlice({
   name: "blogs",
   initialState,
   reducers: {
-    setBlogQuery(state, action: PayloadAction<string>) {
-      state.query = action.payload;
-    },
-    setBlogCategory(state, action: PayloadAction<string>) {
-      state.category = action.payload;
-    },
-    setBlogStatusFilter(state, action: PayloadAction<string>) {
-      state.statusFilter = action.payload;
-    },
     clearSelectedBlog(state) {
       state.selectedBlog = null;
     },
@@ -213,90 +190,55 @@ const blogSlice = createSlice({
         state.status = "loading";
         state.error = undefined;
       })
-      .addCase(fetchBlogs.fulfilled, (state, action) => {
+      .addCase(fetchBlogs.fulfilled, (state, action: PayloadAction<Blog[]>) => {
         state.status = "succeeded";
         state.items = action.payload;
       })
       .addCase(fetchBlogs.rejected, (state, action) => {
         state.status = "failed";
-        state.error = (action.payload as string) || "Failed to load blogs";
+        state.error = action.payload;
       })
 
       // Create blog
-      .addCase(createBlog.pending, (state) => {
-        state.status = "loading";
-        state.error = undefined;
-      })
-      .addCase(createBlog.fulfilled, (state, action) => {
+      .addCase(createBlog.fulfilled, (state, action: PayloadAction<Blog>) => {
         state.status = "succeeded";
         state.items.unshift(action.payload);
       })
       .addCase(createBlog.rejected, (state, action) => {
         state.status = "failed";
-        state.error = (action.payload as string) || "Failed to create blog";
+        state.error = action.payload;
       })
 
       // Blog stats
-      .addCase(fetchBlogsStats.pending, (state) => {
-        state.status = "loading";
-        state.error = undefined;
-      })
-      .addCase(fetchBlogsStats.fulfilled, (state, action) => {
+      .addCase(fetchBlogsStats.fulfilled, (state, action: PayloadAction<Record<string, unknown>>) => {
         state.status = "succeeded";
         state.stats = action.payload;
       })
-      .addCase(fetchBlogsStats.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = (action.payload as string) || "Failed to load blog stats";
-      })
-
+      
       // Get blog by id
-      .addCase(fetchBlogById.pending, (state) => {
-        state.status = "loading";
-        state.error = undefined;
-        state.selectedBlog = null;
-      })
-      .addCase(fetchBlogById.fulfilled, (state, action) => {
+      .addCase(fetchBlogById.fulfilled, (state, action: PayloadAction<Blog>) => {
         state.status = "succeeded";
         state.selectedBlog = action.payload;
       })
-      .addCase(fetchBlogById.rejected, (state, action) => {
-        state.status = "failed";
-        state.selectedBlog = null;
-        state.error = (action.payload as string) || "Failed to fetch blog";
-      })
 
       // Update blog
-      .addCase(updateBlog.pending, (state) => {
-        state.status = "loading";
-        state.error = undefined;
-      })
-      .addCase(updateBlog.fulfilled, (state, action) => {
+      .addCase(updateBlog.fulfilled, (state, action: PayloadAction<Blog>) => {
         state.status = "succeeded";
-        const idx = state.items.findIndex(
-          (blog) => blog._id === action.payload._id
-        );
-        if (idx !== -1) {
-          state.items[idx] = { ...state.items[idx], ...action.payload };
+        const index = state.items.findIndex(blog => blog._id === action.payload._id);
+        if (index !== -1) {
+          state.items[index] = action.payload;
         }
         if (state.selectedBlog?._id === action.payload._id) {
-          state.selectedBlog = {
-            ...state.selectedBlog,
-            ...action.payload,
-          };
+          state.selectedBlog = action.payload;
         }
       })
       .addCase(updateBlog.rejected, (state, action) => {
         state.status = "failed";
-        state.error = (action.payload as string) || "Failed to update blog";
+        state.error = action.payload;
       })
 
       // Delete blog
-      .addCase(deleteBlog.pending, (state) => {
-        state.status = "loading";
-        state.error = undefined;
-      })
-      .addCase(deleteBlog.fulfilled, (state, action) => {
+      .addCase(deleteBlog.fulfilled, (state, action: PayloadAction<string>) => {
         state.status = "succeeded";
         state.items = state.items.filter((blog) => blog._id !== action.payload);
         if (state.selectedBlog?._id === action.payload) {
@@ -305,15 +247,10 @@ const blogSlice = createSlice({
       })
       .addCase(deleteBlog.rejected, (state, action) => {
         state.status = "failed";
-        state.error = (action.payload as string) || "Failed to delete blog";
+        state.error = action.payload;
       });
   },
 });
 
-export const {
-  setBlogQuery,
-  setBlogCategory,
-  setBlogStatusFilter,
-  clearSelectedBlog,
-} = blogSlice.actions;
+export const { clearSelectedBlog } = blogSlice.actions;
 export default blogSlice.reducer;
