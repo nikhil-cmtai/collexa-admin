@@ -103,7 +103,7 @@ const AddBlogs: FC = () => {
     }
   };
 
-  const handleInputChange = (field: keyof AIBlogData, value: any) => {
+  const handleInputChange = (field: keyof AIBlogData, value: AIBlogData[keyof AIBlogData]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

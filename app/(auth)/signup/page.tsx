@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Eye, EyeOff, Lock, User, Loader2, CheckCircle, Phone } from "lucide-react";
+import { Eye, EyeOff, Loader2, CheckCircle } from "lucide-react";
 import { useAppDispatch } from "@/lib/redux/store";
 import { registerUser } from "@/lib/redux/features/authSlice";
 
@@ -53,8 +53,14 @@ const SignupPage = () => {
       await dispatch(registerUser(payload)).unwrap();
       
       router.push(`/verify-otp?email=${formData.email}`);
-    } catch (err: any) {
-      setError(err || "Signup failed. Please try again.");
+    } catch (err: unknown) {
+      if (typeof err === 'string') {
+        setError(err);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Signup failed. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }

@@ -18,8 +18,6 @@ import type { Job, JobCreatePayload, JobUpdatePayload } from '@/lib/redux/featur
 
 const jobCategories = ["All", "Technology", "Marketing", "Data Science", "Design", "Business", "Content", "Cybersecurity", "Finance"];
 const jobTypes = ["All", "Full-time", "Part-time", "Remote", "Hybrid"] as const;
-const jobStatuses = ["All", "active", "closed", "paused"] as const;
-const locations = ["All", "Bangalore", "Mumbai", "Pune", "Delhi", "Hyderabad", "Chennai", "Remote"];
 
 const JobsPage: FC = () => {
   const dispatch = useAppDispatch();
@@ -220,7 +218,7 @@ const JobViewModal: FC<{job: Job | null, isOpen: boolean, onClose: () => void}> 
     </Dialog>
 );
 
-const JobFormModal: FC<{job: Job | null, isOpen: boolean, onClose: () => void, onSubmit: (d: any) => void, isLoading: boolean}> = ({ job, isOpen, onClose, onSubmit, isLoading }) => {
+const JobFormModal: FC<{job: Job | null, isOpen: boolean, onClose: () => void, onSubmit: (d: JobCreatePayload) => void, isLoading: boolean}> = ({ job, isOpen, onClose, onSubmit, isLoading }) => {
   const [formData, setFormData] = useState<Partial<JobCreatePayload>>({});
   
   useEffect(() => {
@@ -238,7 +236,7 @@ const JobFormModal: FC<{job: Job | null, isOpen: boolean, onClose: () => void, o
   
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit(formData as JobCreatePayload);
   };
   
   return (

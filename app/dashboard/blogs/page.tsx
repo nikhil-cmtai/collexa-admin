@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect, FC, FormEvent } from 'react';
 import Image from 'next/image';
-import { Plus, Search, Grid3X3, List, Edit, Trash2, Loader2, ChevronLeft, ChevronRight, Calendar, User, TrendingUp, CheckCircle, Clock } from 'lucide-react';
+import { Plus, Search, Grid3X3, List, Edit, Trash2, Loader2, Calendar, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Label } from '@/components/ui/label';
 import { useAppDispatch, useAppSelector } from '@/lib/redux/store';
-import { fetchBlogs, createBlog, updateBlog, deleteBlog, type Blog, type BlogCreatePayload, type BlogUpdatePayload } from '@/lib/redux/features/blogSlice';
+import { fetchBlogs, createBlog, updateBlog, deleteBlog, type Blog, type BlogCreatePayload } from '@/lib/redux/features/blogSlice';
 import { fetchBlogCategories, type BlogCategory } from '@/lib/redux/features/blogcategorySlice';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 
@@ -32,7 +32,7 @@ type BlogFormData = Omit<Blog, 'tags' | 'metaKeywords'> & {
 
 const BlogsPage: FC = () => {
   const dispatch = useAppDispatch();
-  const { items: blogItems, status: blogsStatus, error: blogsError } = useAppSelector((state) => state.blogs);
+  const { items: blogItems, status: blogsStatus } = useAppSelector((state) => state.blogs);
   const { items: blogCategories, status: categoriesStatus } = useAppSelector((state) => state.blogCategories);
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -75,8 +75,19 @@ const BlogsPage: FC = () => {
     setCurrentPage(1);
   }, [searchTerm, selectedStatus, selectedCategoryFilter]);
 
+  const prepareBlogForForm = (blog: BlogWithCategoryName): BlogFormData => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { categoryName, ...rest } = blog;
+    return {
+      ...rest,
+      tags: blog.tags.join(', '),
+      metaKeywords: blog.metaKeywords.join(', '),
+    };
+  };
+
   const handleFormSubmit = async (formData: BlogFormData) => {
     setIsActionLoading(true);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { _id, createdAt, updatedAt, views, likes, ...blogData } = formData;
     
     const payload: BlogCreatePayload = {
@@ -116,12 +127,13 @@ const BlogsPage: FC = () => {
   }
 
   const openEditModal = (blog: BlogWithCategoryName) => {
-    setSelectedBlog({
-      ...blog,
-      tags: blog.tags.join(', '),
-      metaKeywords: blog.metaKeywords.join(', '),
-    });
+    setSelectedBlog(prepareBlogForForm(blog));
     setShowEditModal(true);
+  };
+
+  const openDeleteModal = (blog: BlogWithCategoryName) => {
+    setSelectedBlog(prepareBlogForForm(blog));
+    setShowDeleteModal(true);
   };
 
   const createEmptyBlog = (): BlogFormData => ({
@@ -190,7 +202,7 @@ const BlogsPage: FC = () => {
                   </div>
                   <div className="flex gap-2 mt-4">
                     <Button onClick={() => openEditModal(blog)} size="sm" className="flex-1 gap-1"><Edit size={14} />Edit</Button>
-                    <Button onClick={() => { setSelectedBlog(blog as any); setShowDeleteModal(true); }} size="sm" variant="destructive" className="flex-1 gap-1"><Trash2 size={14} />Delete</Button>
+                    <Button onClick={() => openDeleteModal(blog)} size="sm" variant="destructive" className="flex-1 gap-1"><Trash2 size={14} />Delete</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -210,7 +222,7 @@ const BlogsPage: FC = () => {
                   <TableCell>
                     <div className="flex gap-1">
                       <Button onClick={() => openEditModal(blog)} variant="ghost" size="icon"><Edit className="w-4 h-4" /></Button>
-                      <Button onClick={() => { setSelectedBlog(blog as any); setShowDeleteModal(true); }} variant="ghost" size="icon" className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                      <Button onClick={() => openDeleteModal(blog)} variant="ghost" size="icon" className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
                     </div>
                   </TableCell>
                 </TableRow>

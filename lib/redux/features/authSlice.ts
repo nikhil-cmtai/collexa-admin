@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import axios, { AxiosError } from "axios";
-import { User } from './userSlice'; // Assuming you have a userSlice with User type
+import { AxiosError } from "axios";
+import { User } from './userSlice';
 import apiClient from "@/lib/apiClient";
 
 interface AuthState {
@@ -21,9 +21,20 @@ interface ApiErrorData {
   message: string;
 }
 
+interface RegisterPayload {
+  email: string;
+  password?: string;
+  [key: string]: unknown;
+}
+
+interface LoginPayload {
+  email: string;
+  password?: string;
+}
+
 export const registerUser = createAsyncThunk<
   { email: string },
-  any,
+  RegisterPayload,
   { rejectValue: string }
 >('auth/registerUser', async (userData, { rejectWithValue }) => {
   try {
@@ -51,7 +62,7 @@ export const verifyEmail = createAsyncThunk<
 
 export const loginUser = createAsyncThunk<
   { user: User },
-  any,
+  LoginPayload,
   { rejectValue: string }
 >('auth/loginUser', async (credentials, { rejectWithValue }) => {
   try {
@@ -64,13 +75,12 @@ export const loginUser = createAsyncThunk<
 });
 
 export const logoutUser = createAsyncThunk<
-  {},
+  void,
   void,
   { rejectValue: string }
 >('auth/logoutUser', async (_, { rejectWithValue }) => {
   try {
-    const response = await apiClient.post(`/auth/logout`);
-    return response.data;
+    await apiClient.post(`/auth/logout`);
   } catch (error) {
     const err = error as AxiosError<ApiErrorData>;
     return rejectWithValue(err.response?.data?.message || 'Logout failed');

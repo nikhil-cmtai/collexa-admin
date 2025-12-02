@@ -91,6 +91,7 @@ const createEmptyInternship = (): DashboardInternship => ({
   rating: 0,
   companySize: "",
   industry: "",
+  postedBy: "",
 });
 
 const mapFormToPayload = (values: DashboardInternship) => {
@@ -252,7 +253,6 @@ const formatStatusLabel = (status?: string) =>
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Internships</h1>
@@ -264,7 +264,6 @@ const formatStatusLabel = (status?: string) =>
           </Button>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card>
             <CardContent className="p-6">
@@ -312,11 +311,9 @@ const formatStatusLabel = (status?: string) =>
           </Card>
         </div>
 
-        {/* Filters and Search */}
         <Card>
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row gap-4">
-              {/* Search */}
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -328,7 +325,6 @@ const formatStatusLabel = (status?: string) =>
                 />
               </div>
 
-              {/* Category Filter */}
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select category" />
@@ -342,7 +338,6 @@ const formatStatusLabel = (status?: string) =>
                 </SelectContent>
               </Select>
 
-              {/* Type Filter */}
               <Select value={selectedType} onValueChange={setSelectedType}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select type" />
@@ -356,7 +351,6 @@ const formatStatusLabel = (status?: string) =>
                 </SelectContent>
               </Select>
 
-              {/* Status Filter */}
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select status" />
@@ -370,7 +364,6 @@ const formatStatusLabel = (status?: string) =>
                 </SelectContent>
               </Select>
 
-              {/* Location Filter */}
               <Select value={selectedLocation} onValueChange={setSelectedLocation}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Select location" />
@@ -384,7 +377,6 @@ const formatStatusLabel = (status?: string) =>
                 </SelectContent>
               </Select>
 
-              {/* View Toggle */}
               <div className="flex border border-input rounded-lg overflow-hidden">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -421,7 +413,6 @@ const formatStatusLabel = (status?: string) =>
           </CardContent>
         </Card>
 
-        {/* Internships Display */}
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {paginatedInternships.map(internship => (
@@ -613,7 +604,6 @@ const formatStatusLabel = (status?: string) =>
           </Card>
         )}
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <Card>
             <CardContent className="p-6">
@@ -659,7 +649,6 @@ const formatStatusLabel = (status?: string) =>
           </Card>
         )}
 
-        {/* View Internship Modal */}
         <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
@@ -670,7 +659,6 @@ const formatStatusLabel = (status?: string) =>
             </DialogHeader>
             {selectedInternship && (
               <div className="space-y-6">
-                {/* Internship Summary */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Card>
                     <CardHeader>
@@ -733,7 +721,6 @@ const formatStatusLabel = (status?: string) =>
                   </Card>
                 </div>
 
-                {/* Description */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Description</CardTitle>
@@ -743,7 +730,6 @@ const formatStatusLabel = (status?: string) =>
                   </CardContent>
                 </Card>
 
-                {/* Requirements */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Requirements</CardTitle>
@@ -760,7 +746,6 @@ const formatStatusLabel = (status?: string) =>
                   </CardContent>
                 </Card>
 
-                {/* Responsibilities */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Responsibilities</CardTitle>
@@ -777,7 +762,6 @@ const formatStatusLabel = (status?: string) =>
                   </CardContent>
                 </Card>
 
-                {/* Benefits */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Benefits</CardTitle>
@@ -794,7 +778,6 @@ const formatStatusLabel = (status?: string) =>
                   </CardContent>
                 </Card>
 
-                {/* Skills */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Required Skills</CardTitle>
@@ -810,7 +793,6 @@ const formatStatusLabel = (status?: string) =>
                   </CardContent>
                 </Card>
 
-                {/* Contact Information */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Contact Information</CardTitle>
@@ -843,7 +825,6 @@ const formatStatusLabel = (status?: string) =>
           </DialogContent>
         </Dialog>
 
-        {/* Add Internship Modal */}
         <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
@@ -861,7 +842,6 @@ const formatStatusLabel = (status?: string) =>
           </DialogContent>
         </Dialog>
 
-        {/* Edit Internship Modal */}
         <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
@@ -881,7 +861,6 @@ const formatStatusLabel = (status?: string) =>
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation Modal */}
         <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
           <DialogContent className="max-w-md">
             <DialogHeader>
@@ -916,7 +895,6 @@ const formatStatusLabel = (status?: string) =>
   )
 }
 
-// Internship Form Component
 const InternshipForm = ({ internship, onSubmit, onCancel, isLoading }: {
   internship: DashboardInternship | null
   onSubmit: (internshipData: DashboardInternship) => void

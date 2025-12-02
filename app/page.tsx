@@ -32,8 +32,14 @@ const LoginPage = () => {
       } else {
         setError("Access denied. Only admins can log in here.");
       }
-    } catch (err: any) {
-      setError(err || "Invalid email or password.");
+    } catch (err: unknown) {
+      if (typeof err === 'string') {
+        setError(err);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Invalid email or password.");
+      }
     } finally {
       setIsLoading(false);
     }

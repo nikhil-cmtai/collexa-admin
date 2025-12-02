@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Loader2, ShieldCheck } from "lucide-react";
 import { useAppDispatch } from "@/lib/redux/store";
 import { verifyEmail } from "@/lib/redux/features/authSlice";
 
-const VerifyOtpPage = () => {
+const VerifyOtpContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
@@ -43,48 +43,62 @@ const VerifyOtpPage = () => {
     try {
       await dispatch(verifyEmail({ otp })).unwrap();
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err || "Verification failed. Please try again.");
+    } catch (err: unknown) {
+      if (typeof err === 'string') {
+        setError(err);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Verification failed. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
+    <Card className="w-full max-w-md">
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl font-bold">Verify Your Email</CardTitle>
+        <CardDescription>
+          An OTP has been sent to <strong>{email}</strong>. Please enter it below.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {error && <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</p>}
+          <div className="space-y-2">
+            <Label htmlFor="otp">One-Time Password (OTP)</Label>
+            <Input
+              id="otp"
+              type="text"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              maxLength={6}
+              required
+              disabled={isLoading}
+              placeholder="Enter 6-digit OTP"
+            />
+          </div>
+          <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifying...</>
+            ) : (
+              <><ShieldCheck className="w-4 h-4 mr-2" /> Verify Account</>
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+};
+
+const VerifyOtpPage = () => {
+  return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Verify Your Email</CardTitle>
-          <CardDescription>
-            An OTP has been sent to <strong>{email}</strong>. Please enter it below.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</p>}
-            <div className="space-y-2">
-              <Label htmlFor="otp">One-Time Password (OTP)</Label>
-              <Input
-                id="otp"
-                type="text"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                maxLength={6}
-                required
-                disabled={isLoading}
-                placeholder="Enter 6-digit OTP"
-              />
-            </div>
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifying...</>
-              ) : (
-                <><ShieldCheck className="w-4 h-4 mr-2" /> Verify Account</>
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      <Suspense fallback={<Loader2 className="w-8 h-8 animate-spin" />}>
+        <VerifyOtpContent />
+      </Suspense>
     </div>
   );
 };

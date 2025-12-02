@@ -69,16 +69,14 @@ const ApplicationsPage = () => {
     }
   }, [dispatch, applicationsStatus, jobsStatus])
 
-  // Create a map of jobId -> Job for quick lookup
   const jobsMap = useMemo(() => {
     const map = new Map<string, Job>()
     jobs.forEach(job => {
-      map.set(job.id, job)
+      map.set(job._id, job)
     })
     return map
   }, [jobs])
 
-  // Group applications by company
   const companiesWithApplications = useMemo(() => {
     const companyMap = new Map<string, {
       applications: Array<JobApplication & { job?: Job }>
@@ -104,11 +102,10 @@ const ApplicationsPage = () => {
       companyMap.get(companyName)!.applications.push({ ...app, job })
     })
 
-    // Convert to array and calculate stats
     return Array.from(companyMap.entries()).map(([companyName, data], index) => {
       const applications = data.applications
-      const jobApps = applications.filter(app => app.job?.type !== 'internship')
-      const internshipApps = applications.filter(app => app.job?.type === 'internship')
+      const jobApps = applications.filter(app => (app.job?.type as string) !== 'internship')
+      const internshipApps = applications.filter(app => (app.job?.type as string) === 'internship')
       
       const statusCounts = {
         hired: applications.filter(app => app.status === 'hired').length,
@@ -117,7 +114,6 @@ const ApplicationsPage = () => {
         rejected: applications.filter(app => app.status === 'rejected').length,
       }
 
-      // Get recent applications (sorted by createdAt, most recent first)
       const recentApplications = applications
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 2)
@@ -125,7 +121,7 @@ const ApplicationsPage = () => {
           id: app._id || '',
           candidateName: app.name,
           position: app.job?.title || 'Unknown Position',
-          type: (app.job?.type === 'internship' ? 'internship' : 'job') as 'job' | 'internship',
+          type: ((app.job?.type as string) === 'internship' ? 'internship' : 'job') as 'job' | 'internship',
           status: app.status,
           appliedDate: app.createdAt,
         }))
@@ -146,7 +142,6 @@ const ApplicationsPage = () => {
     })
   }, [jobApplications, jobsMap])
 
-  // Filter companies
   const filteredCompanies = useMemo(() => {
     return companiesWithApplications.filter(company => {
       const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -178,14 +173,12 @@ const ApplicationsPage = () => {
   }
 
   const handleCompanyClick = (companyName: string) => {
-    // Find company index for routing (you may want to use company ID if available)
     const companyIndex = companiesWithApplications.findIndex(c => c.name === companyName)
     if (companyIndex !== -1) {
       router.push(`/dashboard/applications/${companyIndex + 1}`)
     }
   }
 
-  // Calculate total stats
   const totalStats = useMemo(() => {
     return companiesWithApplications.reduce((acc, company) => ({
       totalApplications: acc.totalApplications + company.totalApplications,
@@ -219,7 +212,6 @@ const ApplicationsPage = () => {
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
           <h1 className="text-3xl font-bold text-foreground">Company Applications Overview</h1>
@@ -227,7 +219,6 @@ const ApplicationsPage = () => {
         </div>
         </div>
 
-        {/* Error Message */}
         {applicationsError && (
           <Card>
             <CardContent className="p-4 text-sm text-destructive">
@@ -236,7 +227,6 @@ const ApplicationsPage = () => {
           </Card>
         )}
 
-      {/* Overall Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           <Card>
             <CardContent className="p-6">
@@ -284,7 +274,6 @@ const ApplicationsPage = () => {
           </Card>
         </div>
 
-      {/* Search and View Toggle */}
         <Card>
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row gap-4">
@@ -298,7 +287,6 @@ const ApplicationsPage = () => {
                   className="pl-10"
                 />
               </div>
-              {/* View Toggle */}
               <div className="flex border border-input rounded-lg overflow-hidden">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -335,7 +323,6 @@ const ApplicationsPage = () => {
           </CardContent>
         </Card>
 
-      {/* Companies Display */}
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCompanies.map(company => (
@@ -367,7 +354,6 @@ const ApplicationsPage = () => {
               </CardHeader>
               
               <CardContent className="space-y-4">
-                {/* Company Stats */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center p-3 bg-muted/50 rounded-lg">
                     <p className="text-2xl font-bold text-foreground">{company.totalApplications}</p>
@@ -379,7 +365,6 @@ const ApplicationsPage = () => {
                         </div>
                       </div>
 
-                {/* Application Types */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -397,7 +382,6 @@ const ApplicationsPage = () => {
                   </div>
                 </div>
 
-                {/* Status Breakdown */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -422,7 +406,6 @@ const ApplicationsPage = () => {
                           </div>
                         </div>
 
-                {/* Recent Applications */}
                 {company.recentApplications.length > 0 && (
                   <div className="pt-3 border-t">
                     <p className="text-sm font-medium text-muted-foreground mb-2">Recent Applications</p>
@@ -534,7 +517,6 @@ const ApplicationsPage = () => {
         </Card>
       )}
 
-      {/* No Results */}
       {filteredCompanies.length === 0 && (
         <Card>
           <CardContent className="p-12 text-center">

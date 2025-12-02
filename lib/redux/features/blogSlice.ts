@@ -1,9 +1,7 @@
-// src/lib/redux/features/blogSlice.ts
-
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
+import apiClient from "@/lib/apiClient";
 
-// 1. Defining strict types for our Blog data
 export interface Blog {
   _id: string;
   title: string;
@@ -12,7 +10,7 @@ export interface Blog {
   content: string;
   featuredImage: string;
   author: string;
-  category: string; // This will hold the ObjectId string
+  category: string;
   tags: string[];
   status: 'published' | 'draft' | 'archived';
   publishedAt: string | null;
@@ -30,11 +28,9 @@ export interface Blog {
   ogImage: string;
 }
 
-// Types for API payloads
 export type BlogCreatePayload = Omit<Blog, '_id' | 'createdAt' | 'updatedAt' | 'views' | 'likes'>;
 export type BlogUpdatePayload = Partial<BlogCreatePayload>;
 
-// 2. Defining the shape of our Redux state
 interface BlogsState {
   items: Blog[];
   status: "idle" | "loading" | "succeeded" | "failed";
@@ -51,31 +47,28 @@ const initialState: BlogsState = {
   selectedBlog: null,
 };
 
-// 3. Defining a generic type for our standard API response
 interface ApiResponse<T> {
   data: T;
   message: string;
   success: boolean;
 }
 
-// Helper to extract data from the response wrapper
 const extractData = <T>(response: { data: ApiResponse<T> }): T => response.data.data;
 
-// 4. Async Thunks with proper TypeScript typing
 export const fetchBlogs = createAsyncThunk<
-  Blog[], // Return type
-  { q?: string; category?: string; status?: string } | undefined, // Argument type
-  { rejectValue: string } // ThunkAPI config
+  Blog[],
+  { q?: string; category?: string; status?: string } | undefined,
+  { rejectValue: string }
 >(
   "blogs/fetchBlogs",
   async (params, { rejectWithValue }) => {
     try {
-      const response = await axios.get<ApiResponse<{ docs: Blog[] }>>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/blogs`,
+      const response = await apiClient.get<ApiResponse<{ docs: Blog[] }>>(
+        `/admin/blogs`,
         { params }
       );
-      return extractData(response) ?.docs ?? [];
-    } catch (error) {
+      return extractData(response)?.docs ?? [];
+    } catch {
       return rejectWithValue("Failed to fetch blogs.");
     }
   }
@@ -89,8 +82,8 @@ export const createBlog = createAsyncThunk<
   "blogs/createBlog",
   async (data, { rejectWithValue }) => {
     try {
-      const response = await axios.post<ApiResponse<Blog>>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/blogs`,
+      const response = await apiClient.post<ApiResponse<Blog>>(
+        `/admin/blogs`,
         data
       );
       return extractData(response);
@@ -109,11 +102,11 @@ export const fetchBlogsStats = createAsyncThunk<
   "blogs/fetchBlogsStats",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get<ApiResponse<Record<string, unknown>>>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/blogs/stats`
+      const response = await apiClient.get<ApiResponse<Record<string, unknown>>>(
+        `/admin/blogs/stats`
       );
       return extractData(response);
-    } catch (error) {
+    } catch {
       return rejectWithValue("Failed to fetch blog stats.");
     }
   }
@@ -127,11 +120,11 @@ export const fetchBlogById = createAsyncThunk<
   "blogs/fetchBlogById",
   async (blogId, { rejectWithValue }) => {
     try {
-      const response = await axios.get<ApiResponse<Blog>>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/blogs/${blogId}`
+      const response = await apiClient.get<ApiResponse<Blog>>(
+        `/admin/blogs/${blogId}`
       );
       return extractData(response);
-    } catch (error) {
+    } catch {
       return rejectWithValue("Failed to fetch blog by ID.");
     }
   }
@@ -145,8 +138,8 @@ export const updateBlog = createAsyncThunk<
   "blogs/updateBlog",
   async ({ blogId, data }, { rejectWithValue }) => {
     try {
-      const response = await axios.patch<ApiResponse<Blog>>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/blogs/${blogId}`,
+      const response = await apiClient.patch<ApiResponse<Blog>>(
+        `/admin/blogs/${blogId}`,
         data
       );
       return extractData(response);
@@ -158,18 +151,18 @@ export const updateBlog = createAsyncThunk<
 );
 
 export const deleteBlog = createAsyncThunk<
-  string, // Returns the ID of the deleted blog
-  string, // Takes the blog ID as argument
+  string,
+  string,
   { rejectValue: string }
 >(
   "blogs/deleteBlog",
   async (blogId, { rejectWithValue }) => {
     try {
-      await axios.delete(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/blogs/${blogId}`
+      await apiClient.delete(
+        `/admin/blogs/${blogId}`
       );
       return blogId;
-    } catch (error) {
+    } catch {
       return rejectWithValue("Failed to delete blog.");
     }
   }
@@ -185,7 +178,6 @@ const blogSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch all blogs
       .addCase(fetchBlogs.pending, (state) => {
         state.status = "loading";
         state.error = undefined;
@@ -198,8 +190,6 @@ const blogSlice = createSlice({
         state.status = "failed";
         state.error = action.payload;
       })
-
-      // Create blog
       .addCase(createBlog.fulfilled, (state, action: PayloadAction<Blog>) => {
         state.status = "succeeded";
         state.items.unshift(action.payload);
@@ -208,20 +198,14 @@ const blogSlice = createSlice({
         state.status = "failed";
         state.error = action.payload;
       })
-
-      // Blog stats
       .addCase(fetchBlogsStats.fulfilled, (state, action: PayloadAction<Record<string, unknown>>) => {
         state.status = "succeeded";
         state.stats = action.payload;
       })
-      
-      // Get blog by id
       .addCase(fetchBlogById.fulfilled, (state, action: PayloadAction<Blog>) => {
         state.status = "succeeded";
         state.selectedBlog = action.payload;
       })
-
-      // Update blog
       .addCase(updateBlog.fulfilled, (state, action: PayloadAction<Blog>) => {
         state.status = "succeeded";
         const index = state.items.findIndex(blog => blog._id === action.payload._id);
@@ -236,8 +220,6 @@ const blogSlice = createSlice({
         state.status = "failed";
         state.error = action.payload;
       })
-
-      // Delete blog
       .addCase(deleteBlog.fulfilled, (state, action: PayloadAction<string>) => {
         state.status = "succeeded";
         state.items = state.items.filter((blog) => blog._id !== action.payload);
