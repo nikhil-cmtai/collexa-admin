@@ -21,6 +21,7 @@ import {
   Award,
   Building,
   Settings,
+  Package,
 } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -48,6 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Users', href: '/dashboard/users', icon: Users },
     { name: 'Leads', href: '/dashboard/leads', icon: TrendingUp },
+    { name: 'Packages', href: '/dashboard/packages', icon: Package },
     { name: 'Admission Request', href: '/dashboard/admission-request', icon: FileText },
     {
       name: 'Courses',
