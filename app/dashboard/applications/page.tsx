@@ -71,9 +71,11 @@ const ApplicationsPage = () => {
 
   const jobsMap = useMemo(() => {
     const map = new Map<string, Job>()
-    jobs.forEach(job => {
-      map.set(job._id, job)
-    })
+    if (Array.isArray(jobs)) {
+      jobs.forEach(job => {
+        map.set(job._id, job)
+      })
+    }
     return map
   }, [jobs])
 
@@ -84,12 +86,21 @@ const ApplicationsPage = () => {
       location: string
     }>()
 
-    jobApplications.forEach(app => {
-      const job = jobsMap.get(app.jobId)
-      if (!job) return
+    let appsToProcess: JobApplication[] = []
+    
+    if (Array.isArray(jobApplications)) {
+      appsToProcess = jobApplications
+    } else if ((jobApplications as any)?.data?.docs) {
+      appsToProcess = (jobApplications as any).data.docs
+    } else if ((jobApplications as any)?.docs) {
+      appsToProcess = (jobApplications as any).docs
+    }
 
-      const companyName = job.company
-      const location = job.location
+    appsToProcess.forEach(app => {
+      const job = jobsMap.get(app.jobId)
+      
+      const companyName = job?.company || 'Unknown Company'
+      const location = job?.location || 'Location N/A'
 
       if (!companyMap.has(companyName)) {
         companyMap.set(companyName, {
@@ -109,7 +120,7 @@ const ApplicationsPage = () => {
       
       const statusCounts = {
         hired: applications.filter(app => app.status === 'hired').length,
-        underReview: applications.filter(app => app.status === 'under_review').length,
+        underReview: applications.filter(app => app.status === 'under_review' || app.status === 'applied').length,
         shortlisted: applications.filter(app => app.status === 'shortlisted').length,
         rejected: applications.filter(app => app.status === 'rejected').length,
       }
@@ -151,7 +162,9 @@ const ApplicationsPage = () => {
   }, [companiesWithApplications, searchTerm])
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    const normalizedStatus = status.toLowerCase()
+    switch (normalizedStatus) {
+      case 'applied':
       case 'under_review': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
       case 'shortlisted': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
       case 'interview_scheduled': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
@@ -162,7 +175,9 @@ const ApplicationsPage = () => {
   }
 
   const getStatusText = (status: string) => {
-    switch (status) {
+    const normalizedStatus = status.toLowerCase()
+    switch (normalizedStatus) {
+      case 'applied': return 'New Applied'
       case 'under_review': return 'Under Review'
       case 'shortlisted': return 'Shortlisted'
       case 'interview_scheduled': return 'Interview Scheduled'
@@ -214,26 +229,26 @@ const ApplicationsPage = () => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-          <h1 className="text-3xl font-bold text-foreground">Company Applications Overview</h1>
-          <p className="text-muted-foreground">Monitor applications across all companies and positions</p>
-        </div>
+            <h1 className="text-3xl font-bold text-foreground">Company Applications Overview</h1>
+            <p className="text-muted-foreground">Monitor applications across all companies and positions</p>
+          </div>
         </div>
 
         {applicationsError && (
           <Card>
             <CardContent className="p-4 text-sm text-destructive">
-              {applicationsError}
+              Error: {applicationsError}
             </CardContent>
           </Card>
         )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Applications</p>
-                <p className="text-2xl font-bold text-foreground">{totalStats.totalApplications}</p>
+                  <p className="text-2xl font-bold text-foreground">{totalStats.totalApplications}</p>
                 </div>
                 <FileText className="w-8 h-8 text-blue-500" />
               </div>
@@ -243,21 +258,10 @@ const ApplicationsPage = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                <p className="text-sm text-muted-foreground">Job Applications</p>
-                <p className="text-2xl font-bold text-foreground">{totalStats.totalJobs}</p>
-              </div>
-              <Briefcase className="w-8 h-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                <p className="text-sm text-muted-foreground">Internship Applications</p>
-                <p className="text-2xl font-bold text-foreground">{totalStats.totalInternships}</p>
-              </div>
-              <Users className="w-8 h-8 text-purple-500" />
+                  <p className="text-sm text-muted-foreground">Job Applications</p>
+                  <p className="text-2xl font-bold text-foreground">{totalStats.totalJobs}</p>
+                </div>
+                <Briefcase className="w-8 h-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
@@ -265,10 +269,21 @@ const ApplicationsPage = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                <p className="text-sm text-muted-foreground">Total Hired</p>
-                <p className="text-2xl font-bold text-foreground">{totalStats.totalHired}</p>
+                  <p className="text-sm text-muted-foreground">Internship Applications</p>
+                  <p className="text-2xl font-bold text-foreground">{totalStats.totalInternships}</p>
+                </div>
+                <Users className="w-8 h-8 text-purple-500" />
               </div>
-              <UserCheck className="w-8 h-8 text-emerald-500" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Hired</p>
+                  <p className="text-2xl font-bold text-foreground">{totalStats.totalHired}</p>
+                </div>
+                <UserCheck className="w-8 h-8 text-emerald-500" />
               </div>
             </CardContent>
           </Card>
@@ -323,212 +338,211 @@ const ApplicationsPage = () => {
           </CardContent>
         </Card>
 
-      {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCompanies.map(company => (
-            <Card 
-              key={company.id} 
-              className="overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer group"
-              onClick={() => handleCompanyClick(company.name)}
-            >
-              <CardHeader className="pb-4">
-                    <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                        <Avatar className="w-12 h-12">
-                      <AvatarFallback className="bg-gradient-to-r from-primary to-secondary text-primary-foreground">
-                        {company.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                        </Avatar>
-                        <div>
-                      <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                        {company.name}
-                      </CardTitle>
-                      <CardDescription className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {company.location}
-                      </CardDescription>
-                    </div>
-                      </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                      </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <p className="text-2xl font-bold text-foreground">{company.totalApplications}</p>
-                    <p className="text-xs text-muted-foreground">Total Applications</p>
-                      </div>
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <p className="text-2xl font-bold text-foreground">{company.hired}</p>
-                    <p className="text-xs text-muted-foreground">Hired</p>
-                        </div>
-                      </div>
-
-                <div className="space-y-2">
+        {viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCompanies.map(company => (
+              <Card 
+                key={company.id} 
+                className="overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer group"
+                onClick={() => handleCompanyClick(company.name)}
+              >
+                <CardHeader className="pb-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 text-green-500" />
-                      <span className="text-sm text-muted-foreground">Jobs</span>
-                    </div>
-                    <span className="text-sm font-medium">{company.jobApplications}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-purple-500" />
-                      <span className="text-sm text-muted-foreground">Internships</span>
-                    </div>
-                    <span className="text-sm font-medium">{company.internshipApplications}</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-yellow-500" />
-                      <span className="text-sm text-muted-foreground">Under Review</span>
-                          </div>
-                    <span className="text-sm font-medium">{company.underReview}</span>
-                          </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-blue-500" />
-                      <span className="text-sm text-muted-foreground">Shortlisted</span>
-                          </div>
-                    <span className="text-sm font-medium">{company.shortlisted}</span>
-                          </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <UserX className="w-4 h-4 text-red-500" />
-                      <span className="text-sm text-muted-foreground">Rejected</span>
-                    </div>
-                    <span className="text-sm font-medium">{company.rejected}</span>
-                          </div>
-                        </div>
-
-                {company.recentApplications.length > 0 && (
-                  <div className="pt-3 border-t">
-                    <p className="text-sm font-medium text-muted-foreground mb-2">Recent Applications</p>
-                    <div className="space-y-2">
-                      {company.recentApplications.slice(0, 2).map(app => (
-                        <div key={app.id} className="flex items-center justify-between text-sm">
-                          <div>
-                            <p className="font-medium">{app.candidateName}</p>
-                            <p className="text-muted-foreground">{app.position}</p>
-                          </div>
-                          <Badge className={`text-xs ${getStatusColor(app.status)}`}>
-                            {getStatusText(app.status)}
-                            </Badge>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Company</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Total Applications</TableHead>
-                <TableHead>Jobs</TableHead>
-                <TableHead>Internships</TableHead>
-                <TableHead>Hired</TableHead>
-                <TableHead>Under Review</TableHead>
-                <TableHead>Shortlisted</TableHead>
-                <TableHead>Rejected</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCompanies.map(company => (
-                <TableRow 
-                  key={company.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleCompanyClick(company.name)}
-                >
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-10 h-10">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="w-12 h-12">
                         <AvatarFallback className="bg-gradient-to-r from-primary to-secondary text-primary-foreground">
-                          {company.name.split(' ').map(n => n[0]).join('')}
+                          {company.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium text-foreground">{company.name}</p>
+                        <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                          {company.name}
+                        </CardTitle>
+                        <CardDescription className="flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {company.location}
+                        </CardDescription>
                       </div>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-muted-foreground" />
-                      <span>{company.location}</span>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                      <p className="text-2xl font-bold text-foreground">{company.totalApplications}</p>
+                      <p className="text-xs text-muted-foreground">Total Applications</p>
                     </div>
-                  </TableCell>
-                  <TableCell className="font-medium">{company.totalApplications}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Briefcase className="w-3 h-3 text-green-500" />
-                      <span>{company.jobApplications}</span>
+                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                      <p className="text-2xl font-bold text-foreground">{company.hired}</p>
+                      <p className="text-xs text-muted-foreground">Hired</p>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Users className="w-3 h-3 text-purple-500" />
-                      <span>{company.internshipApplications}</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="w-4 h-4 text-green-500" />
+                        <span className="text-sm text-muted-foreground">Jobs</span>
+                      </div>
+                      <span className="text-sm font-medium">{company.jobApplications}</span>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <UserCheck className="w-3 h-3 text-emerald-500" />
-                      <span className="font-medium">{company.hired}</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-purple-500" />
+                        <span className="text-sm text-muted-foreground">Internships</span>
+                      </div>
+                      <span className="text-sm font-medium">{company.internshipApplications}</span>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-yellow-500" />
-                      <span>{company.underReview}</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-yellow-500" />
+                        <span className="text-sm text-muted-foreground">Under Review / New</span>
+                      </div>
+                      <span className="text-sm font-medium">{company.underReview}</span>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-3 h-3 text-blue-500" />
-                      <span>{company.shortlisted}</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Star className="w-4 h-4 text-blue-500" />
+                        <span className="text-sm text-muted-foreground">Shortlisted</span>
+                      </div>
+                      <span className="text-sm font-medium">{company.shortlisted}</span>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <UserX className="w-3 h-3 text-red-500" />
-                      <span>{company.rejected}</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <UserX className="w-4 h-4 text-red-500" />
+                        <span className="text-sm text-muted-foreground">Rejected</span>
+                      </div>
+                      <span className="text-sm font-medium">{company.rejected}</span>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                  </TableCell>
+                  </div>
+
+                  {company.recentApplications.length > 0 && (
+                    <div className="pt-3 border-t">
+                      <p className="text-sm font-medium text-muted-foreground mb-2">Recent Applications</p>
+                      <div className="space-y-2">
+                        {company.recentApplications.slice(0, 2).map(app => (
+                          <div key={app.id} className="flex items-center justify-between text-sm">
+                            <div>
+                              <p className="font-medium">{app.candidateName}</p>
+                              <p className="text-muted-foreground">{app.position}</p>
+                            </div>
+                            <Badge className={`text-xs ${getStatusColor(app.status)}`}>
+                              {getStatusText(app.status)}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Company</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Total Applications</TableHead>
+                  <TableHead>Jobs</TableHead>
+                  <TableHead>Internships</TableHead>
+                  <TableHead>Hired</TableHead>
+                  <TableHead>Under Review</TableHead>
+                  <TableHead>Shortlisted</TableHead>
+                  <TableHead>Rejected</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-      )}
+              </TableHeader>
+              <TableBody>
+                {filteredCompanies.map(company => (
+                  <TableRow 
+                    key={company.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleCompanyClick(company.name)}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-10 h-10">
+                          <AvatarFallback className="bg-gradient-to-r from-primary to-secondary text-primary-foreground">
+                            {company.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-foreground">{company.name}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-muted-foreground" />
+                        <span>{company.location}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">{company.totalApplications}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Briefcase className="w-3 h-3 text-green-500" />
+                        <span>{company.jobApplications}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Users className="w-3 h-3 text-purple-500" />
+                        <span>{company.internshipApplications}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <UserCheck className="w-3 h-3 text-emerald-500" />
+                        <span className="font-medium">{company.hired}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-yellow-500" />
+                        <span>{company.underReview}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Star className="w-3 h-3 text-blue-500" />
+                        <span>{company.shortlisted}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <UserX className="w-3 h-3 text-red-500" />
+                        <span>{company.rejected}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        )}
 
-      {filteredCompanies.length === 0 && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Building2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No companies found</h3>
-            <p className="text-muted-foreground">
-              Try adjusting your search terms or check back later for new companies.
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
+        {filteredCompanies.length === 0 && !isLoading && (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <Building2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">No companies found</h3>
+              <p className="text-muted-foreground">
+                There are currently no applications, or the job details have not loaded yet.
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </TooltipProvider>
   )
