@@ -52,6 +52,13 @@ type CompanyWithApplications = {
   }>
 }
 
+type PotentialApiResponse = {
+  data?: {
+    docs?: JobApplication[]
+  }
+  docs?: JobApplication[]
+}
+
 const ApplicationsPage = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
@@ -87,13 +94,14 @@ const ApplicationsPage = () => {
     }>()
 
     let appsToProcess: JobApplication[] = []
+    const potentialResponse = jobApplications as unknown as PotentialApiResponse
     
     if (Array.isArray(jobApplications)) {
       appsToProcess = jobApplications
-    } else if ((jobApplications as any)?.data?.docs) {
-      appsToProcess = (jobApplications as any).data.docs
-    } else if ((jobApplications as any)?.docs) {
-      appsToProcess = (jobApplications as any).docs
+    } else if (potentialResponse?.data?.docs) {
+      appsToProcess = potentialResponse.data.docs
+    } else if (potentialResponse?.docs) {
+      appsToProcess = potentialResponse.docs
     }
 
     appsToProcess.forEach(app => {

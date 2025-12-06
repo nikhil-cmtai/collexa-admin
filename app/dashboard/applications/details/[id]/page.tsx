@@ -35,6 +35,7 @@ import {
 } from '@/lib/redux/features/job-applicationSlice'
 import { fetchJobs } from '@/lib/redux/features/jobsSlice'
 import type { Job } from '@/lib/redux/features/jobsSlice'
+import type { JobApplication } from '@/lib/redux/features/job-applicationSlice'
 
 const ApplicationDetailsPage = () => {
   const params = useParams()
@@ -78,7 +79,7 @@ const ApplicationDetailsPage = () => {
     try {
       await dispatch(updateJobApplication({
         applicationId: application._id as string,
-        data: { status: newStatus as any }
+        data: { status: newStatus as JobApplication['status'] }
       })).unwrap()
       
       alert(`Status Updated: Application status changed to ${newStatus.replace('_', ' ')}`)

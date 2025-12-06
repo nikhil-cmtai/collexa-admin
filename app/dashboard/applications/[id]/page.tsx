@@ -16,7 +16,6 @@ import {
   UserX,
   ArrowLeft,
   Download,
-  MessageSquare,
   Loader2,
   Phone,
   Mail
@@ -37,12 +36,18 @@ import { fetchJobs } from '@/lib/redux/features/jobsSlice'
 import type { JobApplication } from '@/lib/redux/features/job-applicationSlice'
 import type { Job } from '@/lib/redux/features/jobsSlice'
 
+type RawApiResponse = {
+  data?: {
+    docs: JobApplication[]
+  }
+  docs?: JobApplication[]
+}
+
 const CompanyApplicationsPage = () => {
   const router = useRouter()
   const params = useParams()
   const dispatch = useAppDispatch()
   
-  // Get ID from URL (e.g., '1' for the first company in the list)
   const companyIndexId = typeof params.id === 'string' ? parseInt(params.id) - 1 : -1
 
   const { items: jobApplications, status: applicationsStatus } = useAppSelector((state) => state.jobApplications)
@@ -62,7 +67,6 @@ const CompanyApplicationsPage = () => {
     }
   }, [dispatch, applicationsStatus, jobsStatus])
 
-  // Map Jobs for easy lookup
   const jobsMap = useMemo(() => {
     const map = new Map<string, Job>()
     if (Array.isArray(jobs)) {
@@ -71,7 +75,6 @@ const CompanyApplicationsPage = () => {
     return map
   }, [jobs])
 
-  // Reconstruct the Company Data Structure (Same logic as main page for consistency)
   const companyData = useMemo(() => {
     const companyMap = new Map<string, {
       applications: Array<JobApplication & { job?: Job }>
@@ -82,13 +85,14 @@ const CompanyApplicationsPage = () => {
 
     let appsToProcess: JobApplication[] = []
     
-    // Handle Redux state structure variations
+    const rawData = jobApplications as unknown as RawApiResponse
+
     if (Array.isArray(jobApplications)) {
       appsToProcess = jobApplications
-    } else if ((jobApplications as any)?.data?.docs) {
-      appsToProcess = (jobApplications as any).data.docs
-    } else if ((jobApplications as any)?.docs) {
-      appsToProcess = (jobApplications as any).docs
+    } else if (rawData?.data?.docs) {
+      appsToProcess = rawData.data.docs
+    } else if (rawData?.docs) {
+      appsToProcess = rawData.docs
     }
 
     appsToProcess.forEach(app => {
@@ -101,13 +105,12 @@ const CompanyApplicationsPage = () => {
           applications: [],
           companyName,
           location,
-          industry: "Technology" // Defaulting as industry isn't in Job type currently
+          industry: "Technology"
         })
       }
       companyMap.get(companyName)!.applications.push({ ...app, job })
     })
 
-    // Convert map to array to find by index
     const companiesArray = Array.from(companyMap.values()).map(data => {
       const applications = data.applications
       const jobApps = applications.filter(app => (app.job?.type as string) !== 'internship').length
@@ -124,14 +127,13 @@ const CompanyApplicationsPage = () => {
         underReview: applications.filter(app => app.status === 'under_review' || app.status === 'applied').length,
         shortlisted: applications.filter(app => app.status === 'shortlisted').length,
         rejected: applications.filter(app => app.status === 'rejected').length,
-        applications: applications // All full application objects
+        applications: applications 
       }
     })
 
     return companiesArray[companyIndexId] || null
   }, [jobApplications, jobsMap, companyIndexId])
 
-  // Filter specific applications within the selected company
   const filteredApplications = useMemo(() => {
     if (!companyData) return []
     
@@ -152,7 +154,6 @@ const CompanyApplicationsPage = () => {
       return matchesSearch && matchesStatus && matchesType
     })
 
-    // Filter by tab
     if (activeTab === 'jobs') {
       filtered = filtered.filter(app => (app.job?.type as string) !== 'internship')
     } else if (activeTab === 'internships') {
@@ -230,7 +231,6 @@ const CompanyApplicationsPage = () => {
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-4">
             <Button 
@@ -249,7 +249,6 @@ const CompanyApplicationsPage = () => {
           </div>
         </div>
 
-        {/* Company Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           <Card>
             <CardContent className="p-6">
@@ -297,7 +296,6 @@ const CompanyApplicationsPage = () => {
           </Card>
         </div>
 
-        {/* Filters */}
         <Card>
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row gap-4">
@@ -338,7 +336,6 @@ const CompanyApplicationsPage = () => {
           </CardContent>
         </Card>
 
-        {/* Applications Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="all">All Applications ({companyData.totalApplications})</TabsTrigger>
@@ -426,7 +423,6 @@ const CompanyApplicationsPage = () => {
               </Table>
             </Card>
 
-            {/* No Results */}
             {filteredApplications.length === 0 && (
               <Card>
                 <CardContent className="p-12 text-center">
